@@ -22,14 +22,104 @@ class CRM_Anonymiser_Configuration {
     $this->database_name = $dao->database();
   }
 
+  /**
+   * get a list of fields to override for the given entity
+   *
+   * @param $entity_name  array  the entity name as used by the API
+   * @param $entity       array  entity data
+   * 
+   * @return array field_name => field_type map
+   */
+  public function getOverrideFields($entity_name, $entity = array()) {
+    if ($entity_name == 'Contact') {
+      $fields = array(
+        "legal_identifier"       => 'null',
+        "external_identifier"    => 'null',
+        "nick_name"              => 'null',
+        "legal_name"             => 'null',
+        "image_URL"              => 'null',
+        "preferred_language"     => 'null',
+        "source"                 => 'null',
+        "api_key"                => 'null',
+        "middle_name"            => 'null',
+        "formal_title"           => 'null',
+        "job_title"              => 'null',
+        "primary_contact_id"     => 'null',
+        "sic_code"               => 'null',
+        "user_unique_id"         => 'null',
+        "gender_id"              => 'null',
+        "employer_id"            => 'null',
+        "first_name"             => 'string',
+        "last_name"              => 'string',
+        "household_name"         => 'string',
+        "organisation_name"      => 'string',
+        "postal_greeting_custom" => 'null',
+        "email_greeting_custom"  => 'null',
+        "addressee_custom"       => 'null',
+        "postal_greeting_id"     => 'null',
+        "email_greeting_id"      => 'null',
+        "addressee_id"           => 'null',
+      );
+
+      if ($this->shouldDelete('contact_dates')) {
+        $fields['birth_date']    = 'null';
+        $fields['deceased_date'] = 'null';
+        $fields['created_date']  = 'null';
+      }
+    } else {
+      // TODO:
+      error_log("NOT IMPLEMENTED");
+      $fields = array();
+    }
+
+    return $fields;
+  }
 
   /**
    * generate an anonymous value to fill the verious fields with.
    * this allows an override based on the field name.
    */
-  protected function generateAnonymousValue($field_name) {
-    // TODO: do we need anything here?
-    return sha1($field_name . microtime(TRUE));
+  public function generateAnonymousValue($field_name, $type = 'string') {
+    switch ($type) {
+      case 'string':
+        // generate random string
+        return sha1($field_name . microtime(TRUE));
+
+      case 'null':
+        return 'null'; 
+      
+      default:
+        error_log("UNDEFINED: $type");
+        return 'null';
+    }
+  }
+
+
+  /**
+   * get all entities that should simply be deleted
+   */
+  public function getEntitiesToDelete() {
+    // TODO: ask configuration?
+    $entities = array(
+      'Activity'     => array(),
+      'Address'      => array(),
+      'Email'        => array(),
+      'Phone'        => array(),
+      'File'         => array(),
+      'Im'           => array(),
+      'Note'         => array('has_entity_relation' => 1, ),
+      'Relationship' => array(),
+      'Website'      => array(),
+    );
+
+    // add default fields
+    foreach ($entities as $entity_name => &$entity_spec) {
+      if (empty($entity_spec['table_name'])) {
+        $entity_spec['table_name'] = 'civicrm_' . strtolower($entity_name);
+      }
+    }
+
+    return $entities;
   }
 
   /**
@@ -37,27 +127,17 @@ class CRM_Anonymiser_Configuration {
    * anonymisation process given the current configuration
    */
   public function getAffectedTables() {
-    // TODO: implement
-    return array('civicrm_contact');
+    $affected_tables = array('civicrm_contact');
+
+    // add all entity tables
+    $entities = $this->getEntitiesToDelete();
+    foreach ($entities as $entity_name => $entity_spec) {
+      $affected_tables[] = $entity_spec['table_name'];
+    }
+
+    return $affected_tables;
   }
 
-  /**
-   * get all entities that should simply be deleted
-   */
-  public function getEntitiesToDelete() {
-    return array(
-      'Activity'     => array(),
-      'Address'      => array(),
-      'Email'        => array(),
-      'Phone'        => array(),
-      'Attachment'   => array(),
-      'File'         => array(),
-      'Im'           => array(),
-      'Note'         => array(),
-      'Relationship' => array(),
-      'Website'      => array(),
-    );
-  }
 
   /**
    * Get a list of table names that will be touched in an 
@@ -67,7 +147,7 @@ class CRM_Anonymiser_Configuration {
     $affected_log_tables = array();
     $affected_tables = $this->getAffectedTables();
     foreach ($affected_tables as $table_name) {
-      $affected_log_tables[] = "'$table_name'";
+      $affected_log_tables[] = "'log_$table_name'";
     }
     return $affected_log_tables;
   }
