@@ -23,6 +23,68 @@ class CRM_Anonymiser_Configuration {
   }
 
   /**
+   * if this returns true, the configuration
+   * wants all tags for the contact to be deleted
+   * otherwise they will remain unchanged
+   */
+  public function deleteTags() {
+    return FALSE;
+  }
+
+  /**
+   * if this returns true, the configuration
+   * wants all groups associations for the contact 
+   * to be deleted, otherwise they will remain unchanged
+   */
+  public function deleteGroups() {
+    return FALSE;
+  }
+
+  /**
+   * if this returns true, the configuration
+   * wants memberships to be deleted, otherwise
+   * they should be anonymised
+   */
+  public function deleteMemberships() {
+    return FALSE;
+
+  }
+
+  /**
+   * if this returns true, the configuration
+   * wants event participations to be deleted, 
+   * otherwise they should be anonymised
+   */
+  public function deleteParticipations() {
+    return FALSE;
+    
+  }
+
+  /**
+   * if this returns true, the configuration
+   * wants contributions to be deleted, otherwise
+   * they should be anonymised
+   */
+  public function deleteContributions() {
+    return FALSE;
+    
+  }
+
+  /**
+   * looks into the settings, if certain key should be deleted/reset
+   */
+  public function shouldDeleteAttribute($key) {
+    // TODO: look into config
+    return TRUE;
+  }
+
+
+
+
+
+
+
+  /**
    * get a list of fields to override for the given entity
    *
    * @param $entity_name  array  the entity name as used by the API
@@ -73,14 +135,6 @@ class CRM_Anonymiser_Configuration {
     }
 
     return $fields;
-  }
-
-  /**
-   * looks into the settings, if certain key should be deleted/reset
-   */
-  public function shouldDeleteAttribute($key) {
-    // TODO: look into config
-    return TRUE;
   }
 
   /**
@@ -149,34 +203,34 @@ class CRM_Anonymiser_Configuration {
   public function getEntitiesToDelete() {
     // basic setup
     $entities = array(
-      'Activity'
-      'Address'
-      'Email'
-      'Phone'
-      'File'
-      'Im'
-      'Note'
-      'Relationship'
-      'Website'
+      'Activity',
+      'Address',
+      'Email',
+      'Phone',
+      'File',
+      'Im',
+      'Note',
+      'Relationship',
+      'Website',
     );
 
-    if ($this->config->deleteGroups()) {
+    if ($this->deleteGroups()) {
       $entities[] = 'GroupContact';
     }
 
-    if ($this->config->deleteTags()) {
+    if ($this->deleteTags()) {
       $entities[] = 'EntityTag';
     }
 
-    if ($this->config->deleteMemberships()) {
+    if ($this->deleteMemberships()) {
       $entities[] = 'Membership';
     }
 
-    if ($this->config->deleteParticipations()) {
+    if ($this->deleteParticipations()) {
       $entities[] = 'Participant';
     }
 
-    if ($this->config->deleteContributions()) {
+    if ($this->deleteContributions()) {
       $entities[] = 'Contribution';
       $entities[] = 'ContributionRecur';
     }
@@ -189,18 +243,27 @@ class CRM_Anonymiser_Configuration {
    * to indentify the affected records
    */
   public function getIdentifiers($entity_name, $contact_id) {
-    // TODO: exception for Notes
+    // notes have both, entity_table and contact_id (creator)
+    if ($entity_name == 'Note') { // NOTES have both:
+      return array('api' => array( array('entity_table' => 'civicrm_contact',
+                                         'entity_id'    => $contact_id),
+                                   array( array('contact_id' => $contact_id))),
+                   'sql' => array( "(`entity_table`='civicrm_contact' AND `entity_id` = $contact_id) OR (`contact_id` = $contact_id)" ));
+    }
+
+
     // TODO: exception for Activities
 
-    // This is the standard case
-    if ($this->isEntityRelationScheme($entity_name)) {
+    if (in_array($entity_name, array('EntityTag'))) {
+      // This is an entity_relation scheme
       return array('api' => array( array('entity_table' => 'civicrm_contact',
                                          'entity_id'    => $contact_id)),
                    'sql' => array( "`entity_table`='civicrm_contact' AND `entity_id` = $contact_id"));
-    } else {
-      return array('api' => array( array('contact_id' => $contact_id)),
-                   'sql' => array( "`contact_id` = $contact_id"));
     }
+
+    // This is the standard case
+    return array('api' => array( array('contact_id' => $contact_id)),
+                 'sql' => array( "`contact_id` = $contact_id"));
   }
 
   /**
@@ -234,18 +297,18 @@ class CRM_Anonymiser_Configuration {
    * get the corresponding log table
    */
   public function getLogTableForTable($table_name) {
-    return "'log_$table_name'";
+    return "log_$table_name";
   }
 
   /**
-   * Get a list of table names that will be touched in an 
+   * Get a list of table names in quotes that will be touched in an 
    * anonymisation process given the current configuration
    */
-  public function getAffectedLogTables() {
+  public function getAffectedLogTables($quotation = '') {
     $affected_log_tables = array();
     $affected_tables = $this->getAffectedTables();
     foreach ($affected_tables as $table_name) {
-      $affected_log_tables[] = $this->getLogTableForTable($table_name);
+      $affected_log_tables[] = $quotation . $this->getLogTableForTable($table_name) . $quotation;
     }
     return $affected_log_tables;
   }
@@ -261,7 +324,7 @@ class CRM_Anonymiser_Configuration {
     if (!$anonymise_logs) return FALSE;
 
     // get the tables  
-    $affected_log_tables = $this->getAffectedLogTables();
+    $affected_log_tables = $this->getAffectedLogTables("'");
     $affected_log_table_list = implode(',', $affected_log_tables);
 
     $log_tables_present = "SELECT COUNT(table_name) FROM information_schema.tables WHERE table_schema = '{$this->database_name}' AND table_name IN ($affected_log_table_list);";
@@ -282,7 +345,7 @@ class CRM_Anonymiser_Configuration {
    */
   public function systemCheck() {
     if ($this->deleteLogs()) {
-      $affected_log_tables = $this->getAffectedLogTables();
+      $affected_log_tables = $this->getAffectedLogTables("'");
       $affected_log_table_list = implode(',', $affected_log_tables);
 
       // get the tables

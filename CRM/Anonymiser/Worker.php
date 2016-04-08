@@ -64,7 +64,7 @@ class CRM_Anonymiser_Worker {
     }
 
     // ANONYMISE participants
-    if (!$this->config->deleteEvents()) {
+    if (!$this->config->deleteParticipations()) {
       $this->anonymiseParticipants($contact_id);
     }
 
@@ -75,16 +75,15 @@ class CRM_Anonymiser_Worker {
 
     // clean LOGGING tables
     if ($this->config->deleteLogs()) {
-      $affected_tables = $this->getAffectedTables();
-      foreach ($affected_log as $table_name) {
+      $affected_tables = $this->config->getAffectedTables();
+      foreach ($affected_tables as $table_name) {
+        $entity_name    = $this->config->getEntityForTable($table_name);
         $log_table_name = $this->config->getLogTableForTable($table_name);
-
-        $sql_indetifiers = 
-
-        if ($this->config->isEntityRelationScheme($table_name)) {
-          CRM_Core_DAO::executeQuery("DELETE FROM `$log_table_name` WHERE ")
+        $identifiers    = $this->config->getIdentifiers($entity_name, $contact_id);
+        foreach ($identifiers['sql'] as $where_clause) {
+          $this->log("TODO: DELETE FROM `$log_table_name` WHERE ($where_clause);");
+          // CRM_Core_DAO::executeQuery("DELETE FROM `$log_table_name` WHERE ($where_clause);");
         }
-        # code...
       }
     }
   }
@@ -117,35 +116,51 @@ class CRM_Anonymiser_Worker {
    * @param $entity_spec array  parameters used for identification
    */
   protected function deleteRelatedEntities($entity_name, $contact_id) {
-    // TODO: Exception for Note
-    // TODO: Exception for Activity
+    $deleted_count = 0;
 
     // first: find all entities
-    if ($this->config->isEntityRelationScheme($entity_name)) {
-      $query = array(
-        'entity_table' => 'civicrm_contact',
-        'entity_id'    => $contact_id,
-      );
-    } else {
-      $query = array(
-        'contact_id'   => $contact_id,
-        );
-    }
+    $identifiers = $this->config->getIdentifiers($entity_name, $contact_id);
+    foreach ($identifiers['api'] as $query) {
+      $query['limit.option'] = 999999;
+      $query['return'] = 'id';
+      $entities_found = civicrm_api3($entity_name, 'get', $query);
 
-    $query['limit.option'] = 999999;
-    $query['return'] = 'id';
-    $entities_found = civicrm_api3($entity_name, 'get', $query);
-
-    // delete them all
-    $count = 0;
-    foreach ($entities_found['values'] as $key => $entity) {
-      civicrm_api3($entity_name, 'delete', $entity);
-      $count++;
+      // delete them all
+      foreach ($entities_found['values'] as $key => $entity) {
+        civicrm_api3($entity_name, 'delete', $entity);
+        $deleted_count++;
+      }
     }
 
     // log this
-    $this->log(ts("%1 %2s deleted.", array(1 => $count, 2 => $entity_name, 'domain' => 'de.systopia.analyser')));
+    $this->log(ts("%1 %2(s) deleted.", array(1 => $deleted_count, 2 => $entity_name, 'domain' => 'de.systopia.analyser')));
   }
+
+
+  /**
+   * anonymises the contact's membership information,
+   * without deleting statistically relevant data
+   */
+  protected function anonymiseMemberships($contact_id) {
+    // TODO: implement
+  }
+
+  /**
+   * anonymises the contact's event participation information,
+   * without deleting statistically relevant data
+   */
+  protected function anonymiseParticipants($contact_id) {
+    // TODO: implement
+  }
+
+  /**
+   * anonymises the contact's contribution information,
+   * without deleting statistically relevant data
+   */
+  protected function anonymiseContributions($contact_id) {
+    // TODO: implement
+  }
+
 
 
 
