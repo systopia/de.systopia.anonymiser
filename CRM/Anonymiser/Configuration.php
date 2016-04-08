@@ -61,7 +61,7 @@ class CRM_Anonymiser_Configuration {
         "addressee_id"           => 'null',
       );
 
-      if ($this->shouldDelete('contact_dates')) {
+      if ($this->shouldDeleteAttribute('contact_dates')) {
         $fields['birth_date']    = 'null';
         $fields['deceased_date'] = 'null';
         $fields['created_date']  = 'null';
@@ -76,6 +76,14 @@ class CRM_Anonymiser_Configuration {
   }
 
   /**
+   * looks into the settings, if certain key should be deleted/reset
+   */
+  public function shouldDeleteAttribute($key) {
+    // TODO: look into config
+    return TRUE;
+  }
+
+  /**
    * generate an anonymous value to fill the verious fields with.
    * this allows an override based on the field name.
    */
@@ -86,7 +94,7 @@ class CRM_Anonymiser_Configuration {
         return sha1($field_name . microtime(TRUE));
 
       case 'null':
-        return 'null'; 
+        return ''; 
       
       default:
         error_log("UNDEFINED: $type");
@@ -94,32 +102,105 @@ class CRM_Anonymiser_Configuration {
     }
   }
 
+  /**
+   * get the table name for an entity
+   */
+  public function getTableForEntity($entity_name) {
+    // TODO: exceptions?
+
+    // first: split camel case
+    $table_name = preg_replace("/([a-z])([A-Z])/", "\\1_\\2", $entity_name);
+
+    // then prepend civicrm_ and return lower case
+    return $entity_spec['table_name'] = 'civicrm_' . strtolower($table_name);
+  }
+
+
+  /**
+   * get the entity for a table name
+   */
+  public function getEntityForTable($table_name) {
+    // TODO: exceptions?
+
+    // first: strip the 'log_' if present
+    if (substr($table_name, 0, 4) == 'log_') {
+      $table_name = substr($table_name, 4);
+    }
+
+    // then: strip the 'civicrm_' if present
+    if (substr($table_name, 0, 8) == 'civicrm_') {
+      $table_name = substr($table_name, 8);
+    }
+
+    // then: replace all remaining '_' by capitalising the following character
+    $entity_name = '';
+    $parts = preg_split("/_/", $table_name);
+    foreach ($parts as $name_part) {
+      $entity_name .= strtoupper(substr($name_part, 0, 1)) . substr($name_part, 1);
+    }
+
+    return $entity_name;
+  }
+
 
   /**
    * get all entities that should simply be deleted
    */
   public function getEntitiesToDelete() {
-    // TODO: ask configuration?
+    // basic setup
     $entities = array(
-      'Activity'     => array(),
-      'Address'      => array(),
-      'Email'        => array(),
-      'Phone'        => array(),
-      'File'         => array(),
-      'Im'           => array(),
-      'Note'         => array('has_entity_relation' => 1, ),
-      'Relationship' => array(),
-      'Website'      => array(),
+      'Activity'
+      'Address'
+      'Email'
+      'Phone'
+      'File'
+      'Im'
+      'Note'
+      'Relationship'
+      'Website'
     );
 
-    // add default fields
-    foreach ($entities as $entity_name => &$entity_spec) {
-      if (empty($entity_spec['table_name'])) {
-        $entity_spec['table_name'] = 'civicrm_' . strtolower($entity_name);
-      }
+    if ($this->config->deleteGroups()) {
+      $entities[] = 'GroupContact';
+    }
+
+    if ($this->config->deleteTags()) {
+      $entities[] = 'EntityTag';
+    }
+
+    if ($this->config->deleteMemberships()) {
+      $entities[] = 'Membership';
+    }
+
+    if ($this->config->deleteParticipations()) {
+      $entities[] = 'Participant';
+    }
+
+    if ($this->config->deleteContributions()) {
+      $entities[] = 'Contribution';
+      $entities[] = 'ContributionRecur';
     }
 
     return $entities;
+  }
+
+  /**
+   * Generate the API and SQL lookup data
+   * to indentify the affected records
+   */
+  public function getIdentifiers($entity_name, $contact_id) {
+    // TODO: exception for Notes
+    // TODO: exception for Activities
+
+    // This is the standard case
+    if ($this->isEntityRelationScheme($entity_name)) {
+      return array('api' => array( array('entity_table' => 'civicrm_contact',
+                                         'entity_id'    => $contact_id)),
+                   'sql' => array( "`entity_table`='civicrm_contact' AND `entity_id` = $contact_id"));
+    } else {
+      return array('api' => array( array('contact_id' => $contact_id)),
+                   'sql' => array( "`contact_id` = $contact_id"));
+    }
   }
 
   /**
@@ -129,15 +210,32 @@ class CRM_Anonymiser_Configuration {
   public function getAffectedTables() {
     $affected_tables = array('civicrm_contact');
 
-    // add all entity tables
+    // get all entities that were to be deleted
     $entities = $this->getEntitiesToDelete();
-    foreach ($entities as $entity_name => $entity_spec) {
-      $affected_tables[] = $entity_spec['table_name'];
+
+    // add the ones that were just anonymised
+    if (!in_array('Contact', $entities))           $entities[] = 'Contact';
+    if (!in_array('GroupContact', $entities))      $entities[] = 'GroupContact';
+    if (!in_array('EntityTag', $entities))         $entities[] = 'EntityTag';
+    if (!in_array('Membership', $entities))        $entities[] = 'Membership';
+    if (!in_array('Participant', $entities))       $entities[] = 'Participant';
+    if (!in_array('Contribution', $entities))      $entities[] = 'Contribution';
+    if (!in_array('ContributionRecur', $entities)) $entities[] = 'ContributionRecur';
+
+    // look up the table names
+    foreach ($entities as $entity_name) {
+      $affected_tables[] = $this->getTableForEntity($entity_name);
     }
 
     return $affected_tables;
   }
 
+  /**
+   * get the corresponding log table
+   */
+  public function getLogTableForTable($table_name) {
+    return "'log_$table_name'";
+  }
 
   /**
    * Get a list of table names that will be touched in an 
@@ -147,7 +245,7 @@ class CRM_Anonymiser_Configuration {
     $affected_log_tables = array();
     $affected_tables = $this->getAffectedTables();
     foreach ($affected_tables as $table_name) {
-      $affected_log_tables[] = "'log_$table_name'";
+      $affected_log_tables[] = $this->getLogTableForTable($table_name);
     }
     return $affected_log_tables;
   }
@@ -157,7 +255,7 @@ class CRM_Anonymiser_Configuration {
    * This is also FALSE if the user requested it, but there is
    * no log_ tables present.
    */
-  public function anonymiseLogs() {
+  public function deleteLogs() {
     // TODO: read config
     $anonymise_logs = TRUE;
     if (!$anonymise_logs) return FALSE;
@@ -170,6 +268,11 @@ class CRM_Anonymiser_Configuration {
     return CRM_Core_DAO::singleValueQuery($log_tables_present);
   }
 
+
+
+
+
+
   /**
    * Will check if the system is ready for
    * an anonymisation process under the current 
@@ -178,7 +281,7 @@ class CRM_Anonymiser_Configuration {
    * @throws Exception if system not ready.
    */
   public function systemCheck() {
-    if ($this->anonymiseLogs()) {
+    if ($this->deleteLogs()) {
       $affected_log_tables = $this->getAffectedLogTables();
       $affected_log_table_list = implode(',', $affected_log_tables);
 
@@ -190,5 +293,7 @@ class CRM_Anonymiser_Configuration {
         throw new Exception("TODO: ARCHIVE TABLES PRESENT!");
       }
     }
+
+    // TODO: WARNING WHEN CUSTOM FIELDS FOR ANONYMISED (NOT DELETED) ENTITIES
   }
 }

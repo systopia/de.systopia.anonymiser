@@ -52,24 +52,41 @@ class CRM_Anonymiser_Worker {
     // clean out the basic data
     $this->anoymiseContactBase($contact_id);
 
-    // delete attached entries
+    // delete entities, that cannot be (sensibly) anonymised
     $entities_to_delete = $this->config->getEntitiesToDelete();
-    foreach ($entities_to_delete as $entity_name => $entity_spec) {
-      $this->deleteRelatedEntity($entity_name, $contact_id, $entity_spec);
+    foreach ($entities_to_delete as $entity_name) {
+      $this->deleteRelatedEntities($entity_name, $contact_id);
     }
 
-    // delete relations
+    // ANONYMISE memberships
+    if (!$this->config->deleteMemberships()) {
+      $this->anonymiseMemberships($contact_id);
+    }
 
-    // delete groups/tags
+    // ANONYMISE participants
+    if (!$this->config->deleteEvents()) {
+      $this->anonymiseParticipants($contact_id);
+    }
 
-    // anonymise memberships
-
-    // anonymise events
-
-    // anonymise contributions
+    // ANONYMISE contributions
+    if (!$this->config->deleteContributions()) {
+      $this->anonymiseContributions($contact_id);
+    }
 
     // clean LOGGING tables
+    if ($this->config->deleteLogs()) {
+      $affected_tables = $this->getAffectedTables();
+      foreach ($affected_log as $table_name) {
+        $log_table_name = $this->config->getLogTableForTable($table_name);
 
+        $sql_indetifiers = 
+
+        if ($this->config->isEntityRelationScheme($table_name)) {
+          CRM_Core_DAO::executeQuery("DELETE FROM `$log_table_name` WHERE ")
+        }
+        # code...
+      }
+    }
   }
 
 
@@ -83,15 +100,15 @@ class CRM_Anonymiser_Worker {
     $contact = civicrm_api3('Contact', 'get', array('id' => $contact_id));
 
     // then: get all fields to overwrite
-    $fields = $this->config->getOverrideFields($Contact);
+    $fields = $this->config->getOverrideFields('Contact', $contact);
     $erase_query = array('id' => $contact_id);
     foreach ($fields as $field_name => $anon_type) {
       $erase_query[$field_name] = $this->config->generateAnonymousValue($field_name, $anon_type);
     }
 
-    error_log(print_r($query,1));
-    exit();
+    civicrm_api3('Contact', 'create', $erase_query);
 
+    // TODO: anything else?
   }
 
   /**
@@ -99,9 +116,12 @@ class CRM_Anonymiser_Worker {
    * @param $entity_name string the name of the entity as used by the API
    * @param $entity_spec array  parameters used for identification
    */
-  protected function deleteRelatedEntity($entity_name, $contact_id, $entity_spec = array()) {
+  protected function deleteRelatedEntities($entity_name, $contact_id) {
+    // TODO: Exception for Note
+    // TODO: Exception for Activity
+
     // first: find all entities
-    if (!empty($entity_spec['has_entity_relation'])) {
+    if ($this->config->isEntityRelationScheme($entity_name)) {
       $query = array(
         'entity_table' => 'civicrm_contact',
         'entity_id'    => $contact_id,
