@@ -128,6 +128,28 @@ class CRM_Anonymiser_Configuration {
         $fields['deceased_date'] = 'null';
         $fields['created_date']  = 'null';
       }
+
+    } elseif ($entity_name == 'Membership') {
+      $fields = array(
+        "join_date"              => 'year_floor',
+        "start_date"             => 'year_floor',
+        "end_date"               => 'year_ceil',
+        "source"                 => 'null',
+        );
+    
+    } elseif ($entity_name == 'Participant') {
+      $fields = array(
+        "register_date"          => 'month_floor',
+        "source"                 => 'null',
+        );
+
+    // } elseif ($entity_name == 'Contribution') {
+    //   $fields = array(
+    //     "register_date"          => 'month_floor',
+    //     "source"                 => 'null',
+    //     );
+
+
     } else {
       // TODO:
       error_log("NOT IMPLEMENTED");
@@ -141,7 +163,7 @@ class CRM_Anonymiser_Configuration {
    * generate an anonymous value to fill the verious fields with.
    * this allows an override based on the field name.
    */
-  public function generateAnonymousValue($field_name, $type = 'string') {
+  public function generateAnonymousValue($field_name, $type = 'string', $old_value = '') {
     switch ($type) {
       case 'string':
         // generate random string

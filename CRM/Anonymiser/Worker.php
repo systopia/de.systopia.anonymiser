@@ -81,10 +81,12 @@ class CRM_Anonymiser_Worker {
         $log_table_name = $this->config->getLogTableForTable($table_name);
         $identifiers    = $this->config->getIdentifiers($entity_name, $contact_id);
         foreach ($identifiers['sql'] as $where_clause) {
-          $this->log("TODO: DELETE FROM `$log_table_name` WHERE ($where_clause);");
-          // CRM_Core_DAO::executeQuery("DELETE FROM `$log_table_name` WHERE ($where_clause);");
+          error_log("DELETE FROM `$log_table_name` WHERE ($where_clause);");
+          // $this->log("TODO: DELETE FROM `$log_table_name` WHERE ($where_clause);");
+          CRM_Core_DAO::executeQuery("DELETE FROM `$log_table_name` WHERE ($where_clause);");
         }
       }
+      $this->log(ts("%1 log tables cleaned.", array(1 => count($affected_tables), 'domain' => 'de.systopia.analyser')));
     }
   }
 
@@ -142,7 +144,26 @@ class CRM_Anonymiser_Worker {
    * without deleting statistically relevant data
    */
   protected function anonymiseMemberships($contact_id) {
-    // TODO: implement
+    $memberships = civicrm_api3('Membership', 'get', array('id' => $contact_id, 'option.limit' => 99999));
+
+    // iterate through all memberships
+    foreach ($memberships['values'] as $membership) {
+      $fields = $this->config->getOverrideFields('Membership', $membership);
+      if (!empty($fields)) {
+        $update_query = array('id' => $membership['id']);
+        foreach ($fields as $field_name => $type) {
+          $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $membership[$field_name]);
+        }
+        civicrm_api3('Membership', 'create', $update_query);
+        $this->log(ts("Anonymised Membership [%1].", array(1 => $membership['id'], 'domain' => 'de.systopia.analyser')));
+      } else {
+        $this->log(ts("Membership [%1] did not need anonymisation.", array(1 => $membership['id'], 'domain' => 'de.systopia.analyser')));
+      }
+    }
+
+    if ($memberships['count'] == 0) {
+      $this->log(ts("0 Membership entities found for anonymisation.", array('domain' => 'de.systopia.analyser')));
+    }
   }
 
   /**
@@ -150,7 +171,26 @@ class CRM_Anonymiser_Worker {
    * without deleting statistically relevant data
    */
   protected function anonymiseParticipants($contact_id) {
-    // TODO: implement
+    $participants = civicrm_api3('Participant', 'get', array('id' => $contact_id, 'option.limit' => 99999));
+
+    // iterate through all participants
+    foreach ($participants['values'] as $participant) {
+      $fields = $this->config->getOverrideFields('Participant', $participant);
+      if (!empty($fields)) {
+        $update_query = array('id' => $participant['id']);
+        foreach ($fields as $field_name => $type) {
+          $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $participant[$field_name]);
+        }
+        civicrm_api3('Participant', 'create', $update_query);
+        $this->log(ts("Anonymised Participant [%1].", array(1 => $participant['id'], 'domain' => 'de.systopia.analyser')));
+      } else {
+        $this->log(ts("Participant [%1] did not need anonymisation.", array(1 => $participant['id'], 'domain' => 'de.systopia.analyser')));
+      }
+    }
+
+    if ($participants['count'] == 0) {
+      $this->log(ts("0 Participant entities found for anonymisation.", array('domain' => 'de.systopia.analyser')));
+    }
   }
 
   /**
@@ -159,6 +199,7 @@ class CRM_Anonymiser_Worker {
    */
   protected function anonymiseContributions($contact_id) {
     // TODO: implement
+    $this->log(ts("TODO: anonymise contributions", array('domain' => 'de.systopia.analyser')));
   }
 
 
