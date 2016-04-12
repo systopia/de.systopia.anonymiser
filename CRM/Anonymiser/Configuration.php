@@ -111,10 +111,11 @@ class CRM_Anonymiser_Configuration {
         "user_unique_id"         => 'null',
         "gender_id"              => 'null',
         "employer_id"            => 'null',
-        "first_name"             => 'string',
-        "last_name"              => 'string',
-        "household_name"         => 'string',
-        "organisation_name"      => 'string',
+        "first_name"             => 'null',
+        "middle_name"            => 'null',
+        "last_name"              => 'anon_name',
+        "household_name"         => 'anon_name',
+        "organisation_name"      => 'anon_name',
         "postal_greeting_custom" => 'null',
         "email_greeting_custom"  => 'null',
         "addressee_custom"       => 'null',
@@ -163,15 +164,33 @@ class CRM_Anonymiser_Configuration {
    * generate an anonymous value to fill the verious fields with.
    * this allows an override based on the field name.
    */
-  public function generateAnonymousValue($field_name, $type = 'string', $old_value = '') {
+  public function generateAnonymousValue($field_name, $type = 'string', $entity = array()) {
     switch ($type) {
-      case 'string':
+      case 'anon_name':
+        return "{$entity['contact_type']}-{$entity['id']}";
+
+      case 'sha1':
         // generate random string
         return sha1($field_name . microtime(TRUE));
 
       case 'null':
         return ''; 
-      
+
+      case 'year_floor':
+      case 'year_ceil':
+      case 'month_floor':
+        if (!empty($entity[$field_name])) {
+          $date = strtotime($entity[$field_name]);
+          if ($type=='year_floor') {
+            return date('Y0101000000', $date);
+          } elseif ($type=='year_ceil') {
+            return date('Y1231000000', $date);
+          } elseif ($type=='month_floor') {
+            return date('Ym01000000', $date);
+          }
+        }
+        return '';
+
       default:
         error_log("UNDEFINED: $type");
         return 'null';
@@ -273,10 +292,38 @@ class CRM_Anonymiser_Configuration {
                    'sql' => array( "(`entity_table`='civicrm_contact' AND `entity_id` = $contact_id) OR (`contact_id` = $contact_id)" ));
     }
 
+    // Contact has the ID right there
+    if ($entity_name == 'Contact') {
+      return array('api' => array( array( array('id' => $contact_id))),
+                   'sql' => array( "(`id` = $contact_id)" ));
+    }
 
-    // TODO: exception for Activities
+    // Activities are exceptional
+    if ($entity_name == 'Activity') {
+      return array('api' => array( array( array('source_contact_id' => $contact_id),
+                                          array('target_contact_id' => $contact_id))),
+                   'log_join' => "LEFT JOIN log_civicrm_activity_contact ON activity_id=log_civicrm_activity.id",
+                   'sql' => array( "(`contact_id` = $contact_id)" ));
+    }
 
-    if (in_array($entity_name, array('EntityTag'))) {
+    // Files are exceptional
+    if ($entity_name == 'File') {
+      // TODO: API??
+      return array('api' => array(),
+                   'log_join' => "LEFT JOIN log_civicrm_entity_file ON file_id=log_civicrm_file.id",
+                   'sql' => array( "(`entity_table`='civicrm_contact' AND `entity_id` = $contact_id)" ));
+    }
+
+    // Relationships are exceptional
+    if ($entity_name == 'Relationship') {
+      return array('api' => array( array( array('contact_id_a' => $contact_id),
+                                          array('contact_id_b' => $contact_id))),
+                   'sql' => array( "(`contact_id_a` = $contact_id OR `contact_id_b` = $contact_id)" ));
+    }
+
+
+
+    if (in_array($entity_name, array('EntityTag', 'File', 'Log'))) {
       // This is an entity_relation scheme
       return array('api' => array( array('entity_table' => 'civicrm_contact',
                                          'entity_id'    => $contact_id)),
@@ -372,7 +419,6 @@ class CRM_Anonymiser_Configuration {
 
       // get the tables
       $archive_check = "SELECT COUNT(table_name) FROM information_schema.tables WHERE table_schema = '{$this->database_name}' AND table_name IN ($affected_log_table_list) AND engine = 'ARCHIVE';";
-      error_log($archive_check);
       $archives_present = CRM_Core_DAO::singleValueQuery($archive_check);
       if ($archives_present) {
         throw new Exception("TODO: ARCHIVE TABLES PRESENT!");

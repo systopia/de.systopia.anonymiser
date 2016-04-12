@@ -73,7 +73,13 @@ class CRM_Anonymiser_Worker {
       $this->anonymiseContributions($contact_id);
     }
 
-    // clean LOGGING tables
+    // clean SIMPLE LOG
+    if ($this->cleanSimpleLog()) {
+      $query = "DELETE FROM `civicrm_log` WHERE entity_table = 'civicrm_contact' AND entity_id = $contact_id";
+      $this->log(ts("Simple log table cleaned.", array('domain' => 'de.systopia.analyser')));
+    }
+
+    // clean FULL LOGGING tables
     if ($this->config->deleteLogs()) {
       $affected_tables = $this->config->getAffectedTables();
       foreach ($affected_tables as $table_name) {
@@ -81,9 +87,10 @@ class CRM_Anonymiser_Worker {
         $log_table_name = $this->config->getLogTableForTable($table_name);
         $identifiers    = $this->config->getIdentifiers($entity_name, $contact_id);
         foreach ($identifiers['sql'] as $where_clause) {
-          error_log("DELETE FROM `$log_table_name` WHERE ($where_clause);");
-          // $this->log("TODO: DELETE FROM `$log_table_name` WHERE ($where_clause);");
-          CRM_Core_DAO::executeQuery("DELETE FROM `$log_table_name` WHERE ($where_clause);");
+          $join_clause = empty($identifiers['log_join'])?'':$identifiers['log_join'];
+          $query = "DELETE FROM `$log_table_name` WHERE id IN (SELECT * FROM (SELECT `$log_table_name`.id FROM `$log_table_name` $join_clause WHERE $where_clause) TMP);";
+          // $this->log($query);
+          CRM_Core_DAO::executeQuery($query);
         }
       }
       $this->log(ts("%1 log tables cleaned.", array(1 => count($affected_tables), 'domain' => 'de.systopia.analyser')));
@@ -129,7 +136,7 @@ class CRM_Anonymiser_Worker {
 
       // delete them all
       foreach ($entities_found['values'] as $key => $entity) {
-        civicrm_api3($entity_name, 'delete', $entity);
+        civicrm_api3($entity_name, 'delete', array('id' => $entity['id']));
         $deleted_count++;
       }
     }
@@ -144,7 +151,7 @@ class CRM_Anonymiser_Worker {
    * without deleting statistically relevant data
    */
   protected function anonymiseMemberships($contact_id) {
-    $memberships = civicrm_api3('Membership', 'get', array('id' => $contact_id, 'option.limit' => 99999));
+    $memberships = civicrm_api3('Membership', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999));
 
     // iterate through all memberships
     foreach ($memberships['values'] as $membership) {
@@ -152,7 +159,7 @@ class CRM_Anonymiser_Worker {
       if (!empty($fields)) {
         $update_query = array('id' => $membership['id']);
         foreach ($fields as $field_name => $type) {
-          $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $membership[$field_name]);
+          $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $membership);
         }
         civicrm_api3('Membership', 'create', $update_query);
         $this->log(ts("Anonymised Membership [%1].", array(1 => $membership['id'], 'domain' => 'de.systopia.analyser')));
@@ -171,7 +178,7 @@ class CRM_Anonymiser_Worker {
    * without deleting statistically relevant data
    */
   protected function anonymiseParticipants($contact_id) {
-    $participants = civicrm_api3('Participant', 'get', array('id' => $contact_id, 'option.limit' => 99999));
+    $participants = civicrm_api3('Participant', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999));
 
     // iterate through all participants
     foreach ($participants['values'] as $participant) {
@@ -179,7 +186,7 @@ class CRM_Anonymiser_Worker {
       if (!empty($fields)) {
         $update_query = array('id' => $participant['id']);
         foreach ($fields as $field_name => $type) {
-          $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $participant[$field_name]);
+          $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $participant);
         }
         civicrm_api3('Participant', 'create', $update_query);
         $this->log(ts("Anonymised Participant [%1].", array(1 => $participant['id'], 'domain' => 'de.systopia.analyser')));
