@@ -145,15 +145,30 @@ class CRM_Anonymiser_Configuration {
       $fields = array(
         "register_date"          => 'month_floor',
         "source"                 => 'null',
-        // "participant_source"     => "GEHEIM",
-        // "participant_note"       => "GEHEIM",
     );
 
-    // } elseif ($entity_name == 'Contribution') {
-    //   $fields = array(
-    //     "register_date"          => 'month_floor',
-    //     "source"                 => 'null',
-    //     );
+    } elseif ($entity_name == 'Contribution') {
+      $fields = array(
+        "source"                 => 'null',
+        "trxn_id"                => 'null',
+        "invoice_id"             => 'null',
+        "check_number"           => 'null',
+        //"cancel_reason"          => 'null',
+        "credit_note_id"         => 'null',
+        );
+
+    } elseif ($entity_name == 'ContributionRecur') {
+      $fields = array(
+        "trxn_id"                => 'null',
+        "invoice_id"             => 'null',
+        );
+
+    } elseif ($entity_name == 'FinancialTrxn') {
+      $fields = array(
+        "trxn_id"                => 'null',
+        "check_number"           => 'null',
+        // "trxn_result_code"       => 'null',
+        );
 
 
     } else {
@@ -382,11 +397,12 @@ class CRM_Anonymiser_Configuration {
       }
     }
 
-    if ($entity_name == 'File') {
-      // File is an exception:
-      $entity_file_table = $this->getTableForEntity('EntityFile');
+    if ($entity_name == 'File' || $entity_name == 'FinancialTrxn') {
+      // File and FinancialTrxn is an exception:
+      $entity_file_table = $this->getTableForEntity('Entity'.$entity_name);
       $selector = implode(' OR ', $clauses);
-      return "id IN (SELECT file_id AS id FROM `$entity_file_table` WHERE $selector)";
+      $id_field = ($entity_name == 'File')?'file_id':'financial_trxn_id';
+      return "id IN (SELECT $id_field AS id FROM `$entity_file_table` WHERE $selector)";
     } else {
       // standard
       return implode(' OR ', $clauses);

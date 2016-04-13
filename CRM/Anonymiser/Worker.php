@@ -103,7 +103,6 @@ class CRM_Anonymiser_Worker {
           $log_table_name = $this->config->getLogTableForTable($table_name);
           $id_list        = implode(',', $entity_ids);
           $query = "DELETE FROM `$log_table_name` WHERE id IN ($id_list);";
-          error_log($query);
           CRM_Core_DAO::executeQuery($query);
           $this->log(ts("Removed entries for %1 %2(s) from logging table '%3'.", array(1 => count($entity_ids), 2 => $entity_name, 3 => $log_table_name, 'domain' => 'de.systopia.analyser')));
         } 
@@ -235,9 +234,88 @@ class CRM_Anonymiser_Worker {
    * without deleting statistically relevant data
    */
   protected function anonymiseContributions($contact_id, &$clearedEntities) {
-    // TODO: implement
-    $this->log(ts("TODO: anonymise contributions", array('domain' => 'de.systopia.analyser')));
-    // $clearedEntities['Contact'] = array($contact_id);
+    $contributions      = civicrm_api3('Contribution', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999));
+    $test_contributions = civicrm_api3('Contribution', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999, 'is_test' => 1));
+    $all_contributions  = array_merge($contributions['values'], $test_contributions['values']);
+
+    $contribution_counter   = 0;
+    $financial_trxn_counter = 0;
+    $line_item_counter      = 0;
+
+    // iterate through all contributions
+    foreach ($all_contributions as $contribution) {
+      $clearedEntities['Contribution'][] = $contribution['id'];
+      $fields = $this->config->getOverrideFields('Contribution', $contribution);
+
+      // anonymise the contribution itself
+      if (!empty($fields)) {
+        $update_query = array('id' => $contribution['id']);
+        foreach ($fields as $field_name => $type) {
+          $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $contribution);
+        }
+        civicrm_api3('Contribution', 'create', $update_query);
+        $contribution_counter += 1;          
+      }
+
+      // now find and anonymise the LineItems
+      $line_items = civicrm_api3('LineItem', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999));
+      foreach ($line_items['values'] as $line_item) {
+        $clearedEntities['LineItem'][] = $line_item['id'];
+        $fields = $this->config->getOverrideFields('LineItem', $line_item);
+        if (!empty($fields)) {
+          $update_query = array('id' => $line_item['id']);
+          foreach ($fields as $field_name => $type) {
+            $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $line_item);
+            civicrm_api3('LineItem', 'create', $update_query);
+            $line_item_counter += 1;
+          }
+        }
+      }
+
+      // finally: identify all the financial_trxns
+      $entity_table = $this->config->getTableForEntity('FinancialTrxn');
+      $where_clause = $this->config->getAttachedEntitySelector('FinancialTrxn', $clearedEntities);
+      $query = CRM_Core_DAO::executeQuery("SELECT id FROM $entity_table WHERE $where_clause");
+      while ($query->fetch()) { 
+        // anonymise every one of it
+        $financial_trxn_id = $query->id;
+        $clearedEntities['FinancialTrxn'][] = $financial_trxn_id;
+
+        $fields = $this->config->getOverrideFields('FinancialTrxn');
+        if (!empty($fields)) {
+          $update_query = array('id' => $financial_trxn_id);
+          foreach ($fields as $field_name => $type) {
+            $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type);
+          }
+
+          civicrm_api3('FinancialTrxn', 'create', $update_query);
+          $financial_trxn_counter += 1;
+        }
+      }
+    }
+    $this->log(ts("Anonymised %1 contributions, %2 associated line items and %3 associated financial transactions.", array(1 => $contribution_counter, $line_item_counter, $financial_trxn_counter, 'domain' => 'de.systopia.analyser')));
+
+
+    // finally, anonymise recurring contributions
+    $recurring_contributions = civicrm_api3('ContributionRecur', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999));
+    foreach ($recurring_contributions['values'] as $recurring_contribution) {
+      $clearedEntities['ContributionRecur'][] = $recurring_contribution['id'];
+      $fields = $this->config->getOverrideFields('ContributionRecur', $recurring_contribution);
+      if (!empty($fields)) {
+        $update_query = array('id' => $recurring_contribution['id']);
+        foreach ($fields as $field_name => $type) {
+          $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $recurring_contribution);
+        }
+        civicrm_api3('ContributionRecur', 'create', $update_query);
+        $this->log(ts("Anonymised RecurringContribution [%1].", array(1 => $recurring_contribution['id'], 'domain' => 'de.systopia.analyser')));
+      } else {
+        $this->log(ts("RecurringContribution [%1] did not need anonymisation.", array(1 => $recurring_contribution['id'], 'domain' => 'de.systopia.analyser')));
+      }
+    }
+
+    if ($recurring_contributions['count'] == 0) {
+      $this->log(ts("0 RecurringContribution entities found for anonymisation.", array('domain' => 'de.systopia.analyser')));
+    }
   }
 
 
