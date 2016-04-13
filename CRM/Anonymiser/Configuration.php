@@ -75,8 +75,10 @@ class CRM_Anonymiser_Configuration {
    */
   public function shouldDeleteAttribute($key) {
     // TODO: look into config
-    return TRUE;
+    return FALSE;
   }
+
+  
 
 
 
@@ -122,12 +124,13 @@ class CRM_Anonymiser_Configuration {
         "postal_greeting_id"     => 'null',
         "email_greeting_id"      => 'null',
         "addressee_id"           => 'null',
+        "is_deleted"             => 'true',
       );
 
       if ($this->shouldDeleteAttribute('contact_dates')) {
-        $fields['birth_date']    = 'null';
-        $fields['deceased_date'] = 'null';
-        $fields['created_date']  = 'null';
+        $fields['birth_date']    = 'month_floor';
+        $fields['deceased_date'] = 'month_floor';
+        $fields['created_date']  = 'year_floor';
       }
 
     } elseif ($entity_name == 'Membership') {
@@ -142,7 +145,9 @@ class CRM_Anonymiser_Configuration {
       $fields = array(
         "register_date"          => 'month_floor',
         "source"                 => 'null',
-        );
+        // "participant_source"     => "GEHEIM",
+        // "participant_note"       => "GEHEIM",
+    );
 
     // } elseif ($entity_name == 'Contribution') {
     //   $fields = array(
@@ -175,6 +180,12 @@ class CRM_Anonymiser_Configuration {
 
       case 'null':
         return ''; 
+
+      case 'true':
+        return '1'; 
+
+      case 'false':
+        return '0'; 
 
       case 'year_floor':
       case 'year_ceil':
@@ -280,6 +291,26 @@ class CRM_Anonymiser_Configuration {
   }
 
   /**
+   * Attached entities can be freely connected
+   * to any of our contact's entities via
+   * entity_table/entity_id relation or EntityEntity table
+   */
+  public function getAttachedEntities() {
+    $entities = array(
+      'Note',
+      'Log',
+      'File',
+      );
+
+    if ($this->deleteTags()) {
+      $entities[] = 'EntityTag';
+    }
+
+    return $entities;
+  }
+
+
+  /**
    * Generate the API and SQL lookup data
    * to indentify the affected records
    */
@@ -334,6 +365,34 @@ class CRM_Anonymiser_Configuration {
     return array('api' => array( array('contact_id' => $contact_id)),
                  'sql' => array( "`contact_id` = $contact_id"));
   }
+
+
+  /**
+   * generate a SQL WHERE claue to identify all instances
+   * attached to the list of cleared entities
+   */
+  public function getAttachedEntitySelector($entity_name, $clearedEntities) {    
+    // otherwise, just create selectors for all cleared entities
+    $clauses = array();
+    foreach ($clearedEntities as $clearedEntity => $entity_ids) {
+      if (!empty($entity_ids)) {
+        $table_name = $this->getTableForEntity($clearedEntity);
+        $id_list    = implode(',', $entity_ids);
+        $clauses[] = "(`entity_table` = '$table_name' AND `entity_id` IN ($id_list))";
+      }
+    }
+
+    if ($entity_name == 'File') {
+      // File is an exception:
+      $entity_file_table = $this->getTableForEntity('EntityFile');
+      $selector = implode(' OR ', $clauses);
+      return "id IN (SELECT file_id AS id FROM `$entity_file_table` WHERE $selector)";
+    } else {
+      // standard
+      return implode(' OR ', $clauses);
+    }
+  }
+
 
   /**
    * Get a list of table names that will be touched in an 
