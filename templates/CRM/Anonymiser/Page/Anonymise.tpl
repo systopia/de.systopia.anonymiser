@@ -9,7 +9,7 @@
 
 <p>{ts domain=de.systopia.anonymiser}Warning!{/ts}</p>
 <p>
-  {ts domain=de.systopia.anonymiser 1=$contact}You are about to anonymise the contact %1. This will anonymise statistically relevant data and delete everything else.{/ts}
+  {ts domain=de.systopia.anonymiser 1=$contact.display_name 2=$contact.id}You are about to anonymise the contact %1 [%2]. This will anonymise statistically relevant data and delete everything else.{/ts}
   {ts domain=de.systopia.anonymiser}This process can not be reversed!{/ts}
   {ts domain=de.systopia.anonymiser}Please note that the data might still be present in old backups.{/ts}
 </p>
@@ -26,7 +26,7 @@
 <div class="anonymise-log" style="display: none;">
   <p id="anonymiser-status-text">
     <img id="bic_busy" height="12" src="{$config->resourceBase}i/loading.gif"/>
-    {ts domain=de.systopia.anonymiser 1=$contact}Anonymising contact %1...{/ts}
+    {ts domain=de.systopia.anonymiser 1=$contact.display_name 2=$contact.id}Anonymising contact %1 [%2]...{/ts}
   </p>
   <h3>{ts domain=de.systopia.anonymiser 1=$contact}Log:{/ts}</h3>
   <ul id="anonymiser-log-content">
@@ -35,7 +35,8 @@
 
 
 <script type="text/javascript">
-var success_message = "<b>{ts domain=de.systopia.anonymiser 1=$contact}Contact %1 successfully anonymised.{/ts}</b>";
+var success_message = "<b>{ts domain=de.systopia.anonymiser 1=$contact.display_name 2=$contact.id}Contact %1 [%2] successfully anonymised.{/ts}</b>";
+var contact_id = parseInt("{$contact.id}");
 
 {literal}
 cj("#anonymise-contact-button").click(function() {
@@ -43,7 +44,7 @@ cj("#anonymise-contact-button").click(function() {
   cj("div.anonymise-log").show(500);
 
   // call the API
-  CRM.api('Contact', 'anonymise', {'contact_id': 5},
+  CRM.api('Contact', 'anonymise', {'contact_id': contact_id},
     { // SUCCESS HANDLER
       success: function(data) {
         // first: replace status text
