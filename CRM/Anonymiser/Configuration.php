@@ -172,8 +172,7 @@ class CRM_Anonymiser_Configuration {
 
 
     } else {
-      // TODO:
-      error_log("NOT IMPLEMENTED");
+      // TODO: Check if we forgot something...
       $fields = array();
     }
 

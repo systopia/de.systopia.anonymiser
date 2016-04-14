@@ -1,0 +1,120 @@
+# Copyright CiviCRM LLC (c) 2004-2015
+# This file is distributed under the same license as the CiviCRM package.
+# If you contribute heavily to a translation and deem your work copyrightable,
+# make sure you license it to CiviCRM LLC under Academic Free License 3.0.
+msgid ""
+msgstr ""
+"Project-Id-Version: de.systopia.anonymiser\n"
+"POT-Creation-Date: 2016-04-14 10:50+0200\n"
+"Language-Team: CiviCRM Translators <civicrm-translators@lists.civicrm.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: CRM/Anonymiser/Page/Anonymise.php anonymiser.php
+msgid "Anonymise Contact"
+msgstr ""
+
+#: CRM/Anonymiser/Page/Anonymise.php
+msgid "Contact ID is invalid!"
+msgstr ""
+
+#: CRM/Anonymiser/Page/Anonymise.php
+msgid "Error"
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "No contact ID given!"
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "%1 attached %2(s) deleted."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "Removed entries for %1 %2(s) from logging table '%3'."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "%1 %2(s) deleted."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "Anonymised Membership [%1]."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "Membership [%1] did not need anonymisation."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "0 Membership entities found for anonymisation."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "Anonymised Participant [%1]."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "Participant [%1] did not need anonymisation."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "0 Participant entities found for anonymisation."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid ""
+"Anonymised %1 contributions, %2 associated line items and %3 associated "
+"financial transactions."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "Anonymised RecurringContribution [%1]."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "RecurringContribution [%1] did not need anonymisation."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid "0 RecurringContribution entities found for anonymisation."
+msgstr ""
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "Warning!"
+msgstr ""
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid ""
+"You are about to anonymise the contact %1 [%2]. This will anonymise "
+"statistically relevant data and delete everything else."
+msgstr ""
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "This process can not be reversed!"
+msgstr ""
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "Please note that the data might still be present in old backups."
+msgstr ""
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "Are you sure you want to anonymise this contact?"
+msgstr ""
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "YES"
+msgstr ""
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "Anonymising contact %1 [%2]..."
+msgstr ""
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "Log:"
+msgstr ""
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "Contact %1 [%2] successfully anonymised."
+msgstr ""

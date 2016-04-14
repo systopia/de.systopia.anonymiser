@@ -19,15 +19,15 @@
     {ts domain=de.systopia.anonymiser}Are you sure you want to anonymise this contact?{/ts}
   </p>
   <div class="ui-dialog-buttonset">
-    <button type="button" id="anonymise-contact-button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"><span class="ui-button-icon-primary ui-icon ui-icon-check"></span><span class="ui-button-text">{ts domain=de.systopia.anonymiser}YES!{/ts}</span></button>
+    <button type="button" id="anonymise-contact-button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"><span class="ui-button-icon-primary ui-icon ui-icon-check"></span><span class="ui-button-text">{ts domain=de.systopia.anonymiser}YES{/ts}</span></button>
   </div>
 </div>
 
 <div class="anonymise-log" style="display: none;">
-  <p id="anonymiser-status-text">
+  <b><p id="anonymiser-status-text">
     <img id="bic_busy" height="12" src="{$config->resourceBase}i/loading.gif"/>
     {ts domain=de.systopia.anonymiser 1=$contact.display_name 2=$contact.id}Anonymising contact %1 [%2]...{/ts}
-  </p>
+  </p></b>
   <h3>{ts domain=de.systopia.anonymiser 1=$contact}Log:{/ts}</h3>
   <ul id="anonymiser-log-content">
   </ul>
@@ -35,7 +35,7 @@
 
 
 <script type="text/javascript">
-var success_message = "<b>{ts domain=de.systopia.anonymiser 1=$contact.display_name 2=$contact.id}Contact %1 [%2] successfully anonymised.{/ts}</b>";
+var success_message = "{ts domain=de.systopia.anonymiser 1=$contact.display_name 2=$contact.id}Contact %1 [%2] successfully anonymised.{/ts}";
 var contact_id = parseInt("{$contact.id}");
 
 {literal}

@@ -1,0 +1,122 @@
+# Copyright CiviCRM LLC (c) 2004-2015
+# This file is distributed under the same license as the CiviCRM package.
+# If you contribute heavily to a translation and deem your work copyrightable,
+# make sure you license it to CiviCRM LLC under Academic Free License 3.0.
+msgid ""
+msgstr ""
+"Project-Id-Version: de.systopia.anonymiser\n"
+"POT-Creation-Date: 2016-04-14 10:50+0200\n"
+"Language-Team: SYSTOPIA <endres@systopia.de>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Bjoern Endres <Bjoern.Endres@didonai.com>\n"
+"X-Poedit-Language: German\n"
+"X-Poedit-Country: GERMANY\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: CRM/Anonymiser/Page/Anonymise.php anonymiser.php
+msgid "Anonymise Contact"
+msgstr "Kontakt Anonymisieren"
+
+#: CRM/Anonymiser/Page/Anonymise.php
+msgid "Contact ID is invalid!"
+msgstr "Kontakt-ID ist ungültig"
+
+#: CRM/Anonymiser/Page/Anonymise.php
+msgid "Error"
+msgstr "Fehler"
+
+#: CRM/Anonymiser/Worker.php
+msgid "No contact ID given!"
+msgstr "Keine Kontakt-ID übermittelt!"
+
+#: CRM/Anonymiser/Worker.php
+msgid "%1 attached %2(s) deleted."
+msgstr "%1 assoiziierte %2(s) gelöscht."
+
+#: CRM/Anonymiser/Worker.php
+msgid "Removed entries for %1 %2(s) from logging table '%3'."
+msgstr "Einträge von %1 %2(s) aus Logging-Tabelle '%3' entfernt."
+
+#: CRM/Anonymiser/Worker.php
+msgid "%1 %2(s) deleted."
+msgstr "%1 %2(s) gelöscht."
+
+#: CRM/Anonymiser/Worker.php
+msgid "Anonymised Membership [%1]."
+msgstr "Mitgliedschaft [%1] wurde anonymisiert."
+
+#: CRM/Anonymiser/Worker.php
+msgid "Membership [%1] did not need anonymisation."
+msgstr "Mitgliedschaft [%1] benötigt keine Anonymisierung."
+
+#: CRM/Anonymiser/Worker.php
+msgid "0 Membership entities found for anonymisation."
+msgstr "Es liegen keine Mitgliedschaften zur Anonymisierung vor."
+
+#: CRM/Anonymiser/Worker.php
+msgid "Anonymised Participant [%1]."
+msgstr "Veranstaltungsteilnahme [%1] wurde anonymisiert."
+
+#: CRM/Anonymiser/Worker.php
+msgid "Participant [%1] did not need anonymisation."
+msgstr "Veranstaltungsteilnahme [%1] benötigt keine Anonymisierung."
+
+#: CRM/Anonymiser/Worker.php
+msgid "0 Participant entities found for anonymisation."
+msgstr "Es liegen keine Veranstaltungsteilnahmen zur Anonymisierung vor."
+
+#: CRM/Anonymiser/Worker.php
+msgid "Anonymised %1 contributions, %2 associated line items and %3 associated financial transactions."
+msgstr "%1 Zuwendungen, %2 anhängige Einzelposten (LineItems) und %3 zugehörige Transaktionseinträge wurden anonymisiert."
+
+#: CRM/Anonymiser/Worker.php
+msgid "Anonymised RecurringContribution [%1]."
+msgstr "Wiederkehrende Zuwedung [%1] wurde anonymisiert."
+
+#: CRM/Anonymiser/Worker.php
+msgid "RecurringContribution [%1] did not need anonymisation."
+msgstr "Wiederkehrende Zuwedung [%1] benötigt keine Anonymisierung."
+
+#: CRM/Anonymiser/Worker.php
+msgid "0 RecurringContribution entities found for anonymisation."
+msgstr "Es liegen keine Wiederkehrende Zuwedungen zur Anonymisierung vor."
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "Warning!"
+msgstr "Warnung!"
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "You are about to anonymise the contact %1 [%2]. This will anonymise statistically relevant data and delete everything else."
+msgstr "Sie möchten den Kontakt  %1 [%2] anonymisieren. Dies würde nur einige statistisch relevante Merkmale erhalten und alle anderen Daten des Kontakts löschen."
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "This process can not be reversed!"
+msgstr "Dieser Vorgang kann nicht rückgängig gemacht werden!"
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "Please note that the data might still be present in old backups."
+msgstr "Bedenken Sie aber, dass die ursprünglichen Daten noch in alten Backups des System vorliegen können."
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "Are you sure you want to anonymise this contact?"
+msgstr "Sind Sie wirklich sicher dass Sie diesen Kontakt anonymisieren möchten?"
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "YES"
+msgstr "JA"
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "Anonymising contact %1 [%2]..."
+msgstr "Anonymisierung von Kontakt %1 [%2] läuft..."
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "Log:"
+msgstr "Protokoll:"
+
+#: templates/CRM/Anonymiser/Page/Anonymise.tpl
+msgid "Contact %1 [%2] successfully anonymised."
+msgstr "Kontakt %1 [%2] wurde erfolgreich anonymisiert."
+
