@@ -132,3 +132,24 @@ function anonymiser_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _anonymiser_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
+/**
+ * add an action for the contact
+ */
+function anonymiser_civicrm_summaryActions( &$actions, $contactID ) {
+  $actions['contact_anonymise'] = array(
+      'title'           => ts("Anonymise Contact", array('domain' => 'de.systopia.anonymiser')),
+      'weight'          => 5,
+      'ref'             => 'contact-anonymise',
+      'key'             => 'contact_anonymise',
+      'href'            => CRM_Utils_System::url('civicrm/contact/anonymise', "cid=$contactID"),
+      'permissions'     => array('delete contacts')
+    );
+}
+
+/**
+ * Set permission to the API calls
+ */
+function anonymiser_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
+  $permissions['contact']['anonymise'] = array('delete contacts');
+}
+

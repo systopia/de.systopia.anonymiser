@@ -92,7 +92,7 @@ class CRM_Anonymiser_Worker {
           $counter += 1;          
         }
       }
-      $this->log(ts("%1 attached %2(s) deleted.", array(1 => $counter, 2 => $attachedEntity, 'domain' => 'de.systopia.analyser')));
+      $this->log(ts("%1 attached %2(s) deleted.", array(1 => $counter, 2 => $attachedEntity, 'domain' => 'de.systopia.anonymiser')));
     }
 
     // FINALLY clean FULL LOGGING tables
@@ -104,7 +104,7 @@ class CRM_Anonymiser_Worker {
           $id_list        = implode(',', $entity_ids);
           $query = "DELETE FROM `$log_table_name` WHERE id IN ($id_list);";
           CRM_Core_DAO::executeQuery($query);
-          $this->log(ts("Removed entries for %1 %2(s) from logging table '%3'.", array(1 => count($entity_ids), 2 => $entity_name, 3 => $log_table_name, 'domain' => 'de.systopia.analyser')));
+          $this->log(ts("Removed entries for %1 %2(s) from logging table '%3'.", array(1 => count($entity_ids), 2 => $entity_name, 3 => $log_table_name, 'domain' => 'de.systopia.anonymiser')));
         } 
       }
     }
@@ -157,7 +157,7 @@ class CRM_Anonymiser_Worker {
     }
 
     // log this
-    $this->log(ts("%1 %2(s) deleted.", array(1 => $deleted_count, 2 => $entity_name, 'domain' => 'de.systopia.analyser')));
+    $this->log(ts("%1 %2(s) deleted.", array(1 => $deleted_count, 2 => $entity_name, 'domain' => 'de.systopia.anonymiser')));
   }
 
   /**
@@ -191,14 +191,14 @@ class CRM_Anonymiser_Worker {
           $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $membership);
         }
         civicrm_api3('Membership', 'create', $update_query);
-        $this->log(ts("Anonymised Membership [%1].", array(1 => $membership['id'], 'domain' => 'de.systopia.analyser')));
+        $this->log(ts("Anonymised Membership [%1].", array(1 => $membership['id'], 'domain' => 'de.systopia.anonymiser')));
       } else {
-        $this->log(ts("Membership [%1] did not need anonymisation.", array(1 => $membership['id'], 'domain' => 'de.systopia.analyser')));
+        $this->log(ts("Membership [%1] did not need anonymisation.", array(1 => $membership['id'], 'domain' => 'de.systopia.anonymiser')));
       }
     }
 
     if ($memberships['count'] == 0) {
-      $this->log(ts("0 Membership entities found for anonymisation.", array('domain' => 'de.systopia.analyser')));
+      $this->log(ts("0 Membership entities found for anonymisation.", array('domain' => 'de.systopia.anonymiser')));
     }
   }
 
@@ -218,14 +218,14 @@ class CRM_Anonymiser_Worker {
           $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $participant);
         }
         civicrm_api3('Participant', 'create', $update_query);
-        $this->log(ts("Anonymised Participant [%1].", array(1 => $participant['id'], 'domain' => 'de.systopia.analyser')));
+        $this->log(ts("Anonymised Participant [%1].", array(1 => $participant['id'], 'domain' => 'de.systopia.anonymiser')));
       } else {
-        $this->log(ts("Participant [%1] did not need anonymisation.", array(1 => $participant['id'], 'domain' => 'de.systopia.analyser')));
+        $this->log(ts("Participant [%1] did not need anonymisation.", array(1 => $participant['id'], 'domain' => 'de.systopia.anonymiser')));
       }
     }
 
     if ($participants['count'] == 0) {
-      $this->log(ts("0 Participant entities found for anonymisation.", array('domain' => 'de.systopia.analyser')));
+      $this->log(ts("0 Participant entities found for anonymisation.", array('domain' => 'de.systopia.anonymiser')));
     }
   }
 
@@ -293,7 +293,7 @@ class CRM_Anonymiser_Worker {
         }
       }
     }
-    $this->log(ts("Anonymised %1 contributions, %2 associated line items and %3 associated financial transactions.", array(1 => $contribution_counter, $line_item_counter, $financial_trxn_counter, 'domain' => 'de.systopia.analyser')));
+    $this->log(ts("Anonymised %1 contributions, %2 associated line items and %3 associated financial transactions.", array(1 => $contribution_counter, $line_item_counter, $financial_trxn_counter, 'domain' => 'de.systopia.anonymiser')));
 
 
     // finally, anonymise recurring contributions
@@ -307,14 +307,14 @@ class CRM_Anonymiser_Worker {
           $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $recurring_contribution);
         }
         civicrm_api3('ContributionRecur', 'create', $update_query);
-        $this->log(ts("Anonymised RecurringContribution [%1].", array(1 => $recurring_contribution['id'], 'domain' => 'de.systopia.analyser')));
+        $this->log(ts("Anonymised RecurringContribution [%1].", array(1 => $recurring_contribution['id'], 'domain' => 'de.systopia.anonymiser')));
       } else {
-        $this->log(ts("RecurringContribution [%1] did not need anonymisation.", array(1 => $recurring_contribution['id'], 'domain' => 'de.systopia.analyser')));
+        $this->log(ts("RecurringContribution [%1] did not need anonymisation.", array(1 => $recurring_contribution['id'], 'domain' => 'de.systopia.anonymiser')));
       }
     }
 
     if ($recurring_contributions['count'] == 0) {
-      $this->log(ts("0 RecurringContribution entities found for anonymisation.", array('domain' => 'de.systopia.analyser')));
+      $this->log(ts("0 RecurringContribution entities found for anonymisation.", array('domain' => 'de.systopia.anonymiser')));
     }
   }
 

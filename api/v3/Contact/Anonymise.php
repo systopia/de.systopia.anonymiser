@@ -20,7 +20,7 @@
 function civicrm_api3_contact_anonymise($params) {
   $worker = new CRM_Anonymiser_Worker();
   $worker->anonymiseContact($params['contact_id']);
-  error_log(print_r($worker->getLog(),1));
+  return civicrm_api3_create_success($worker->getLog());
 }
 
 /**
