@@ -34,15 +34,15 @@ msgstr "Keine Kontakt-ID übermittelt!"
 
 #: CRM/Anonymiser/Worker.php
 msgid "%1 attached %2(s) deleted."
-msgstr "%1 assoiziierte %2(s) gelöscht."
+msgstr "%1 assoiziierte Einträge vom Typ %2 gelöscht."
 
 #: CRM/Anonymiser/Worker.php
 msgid "Removed entries for %1 %2(s) from logging table '%3'."
-msgstr "Einträge von %1 %2(s) aus Logging-Tabelle '%3' entfernt."
+msgstr "Alle Logs für %1 Einträge vom Typ %2 aus Tabelle '%3' entfernt."
 
 #: CRM/Anonymiser/Worker.php
 msgid "%1 %2(s) deleted."
-msgstr "%1 %2(s) gelöscht."
+msgstr "%1 Einträge vom Typ %2 gelöscht."
 
 #: CRM/Anonymiser/Worker.php
 msgid "Anonymised Membership [%1]."
