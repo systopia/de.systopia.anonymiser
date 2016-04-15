@@ -122,8 +122,11 @@ class CRM_Anonymiser_Configuration {
         "email_greeting_custom"  => 'null',
         "addressee_custom"       => 'null',
         "postal_greeting_id"     => 'null',
+        "postal_greeting_display"=> 'null',
         "email_greeting_id"      => 'null',
+        "email_greeting_display" => 'null',
         "addressee_id"           => 'null',
+        "addressee_display"      => 'null',
         "is_deleted"             => 'true',
       );
 
