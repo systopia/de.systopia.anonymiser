@@ -347,7 +347,7 @@ class CRM_Anonymiser_Configuration {
     if ($entity_name == 'Activity') {
       return array('api' => array( array( array('source_contact_id' => $contact_id),
                                           array('target_contact_id' => $contact_id))),
-                   'log_join' => "LEFT JOIN log_civicrm_activity_contact ON activity_id=log_civicrm_activity.id",
+                   'join' => "LEFT JOIN civicrm_activity_contact ON activity_id=civicrm_activity.id",
                    'sql' => array( "(`contact_id` = $contact_id)" ));
     }
 
@@ -355,7 +355,7 @@ class CRM_Anonymiser_Configuration {
     if ($entity_name == 'File') {
       // TODO: API??
       return array('api' => array(),
-                   'log_join' => "LEFT JOIN log_civicrm_entity_file ON file_id=log_civicrm_file.id",
+                   'join' => "LEFT JOIN civicrm_entity_file ON file_id=civicrm_file.id",
                    'sql' => array( "(`entity_table`='civicrm_contact' AND `entity_id` = $contact_id)" ));
     }
 

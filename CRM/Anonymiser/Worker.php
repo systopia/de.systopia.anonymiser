@@ -143,15 +143,15 @@ class CRM_Anonymiser_Worker {
 
     // first: find all entities
     $identifiers = $this->config->getIdentifiers($entity_name, $contact_id);
-    foreach ($identifiers['api'] as $query) {
-      $query['limit.option'] = 999999;
-      $query['return'] = 'id';
-      $entities_found = civicrm_api3($entity_name, 'get', $query);
-
-      // delete them all
-      foreach ($entities_found['values'] as $key => $entity) {
-        $clearedEntities[$entity_name][] = $entity['id'];
-        $this->deleteEntity($entity_name, $entity['id']);
+    foreach ($identifiers['sql'] as $where_clause) {
+      $table_name = $this->config->getTableForEntity($entity_name);
+      $join = empty($identifiers['join'])?'':$identifiers['join'];
+      $sql = "SELECT `$table_name`.id AS entity_id FROM `$table_name` $join WHERE $where_clause";
+      error_log($sql);
+      $query = CRM_Core_DAO::executeQuery($sql);
+      while ($query->fetch()) {
+        $clearedEntities[$entity_name][] = $query->entity_id;
+        $this->deleteEntity($entity_name, $query->entity_id);
         $deleted_count++;
       }
     }
