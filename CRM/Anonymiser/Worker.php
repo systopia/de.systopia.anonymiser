@@ -56,6 +56,9 @@ class CRM_Anonymiser_Worker {
       $this->deleteRelatedEntities($entity_name, $contact_id, $clearedEntities);
     }
 
+    // delete ACTIVITIES
+    $this->deleteActivities($entity_name, $contact_id, $clearedEntities);
+
     // ANONYMISE memberships
     if (!$this->config->deleteMemberships()) {
       $this->anonymiseMemberships($contact_id, $clearedEntities);
@@ -147,7 +150,6 @@ class CRM_Anonymiser_Worker {
       $table_name = $this->config->getTableForEntity($entity_name);
       $join = empty($identifiers['join'])?'':$identifiers['join'];
       $sql = "SELECT `$table_name`.id AS entity_id FROM `$table_name` $join WHERE $where_clause";
-      error_log($sql);
       $query = CRM_Core_DAO::executeQuery($sql);
       while ($query->fetch()) {
         $clearedEntities[$entity_name][] = $query->entity_id;
@@ -173,6 +175,47 @@ class CRM_Anonymiser_Worker {
     }
   }
 
+
+  /**
+   * DELETE the activities. This is not straightforward, activities
+   * can be linked to a multitude of contacts
+   * 
+   * OUR approach is: if it's linked to up to two contacts, we delete it
+   */
+  protected function deleteActivities($entity_name, $contact_id, &$clearedEntities) {
+    $deleted_activities = 0;
+    $deleted_connections = 0;
+
+    // FIRST: find all contact-activity relations
+    $identify_connections_sql = "SELECT id FROM civicrm_activity_contact WHERE contact_id = $contact_id";
+    $identify_connections = CRM_Core_DAO::executeQuery($identify_connections_sql);
+    while ($identify_connections->fetch()) {
+      $clearedEntities['ActivityContact'][] = $identify_connections->id;
+    }
+
+    // THEN: find and delete the activities
+    $identify_activities_sql = "SELECT civicrm_activity.id AS activity_identifier
+                                FROM civicrm_activity
+                                LEFT JOIN civicrm_activity_contact ON civicrm_activity.id = civicrm_activity_contact.activity_id
+                                WHERE contact_id = $contact_id
+                                  AND 2 <= (SELECT COUNT(DISTINCT(contact_id)) FROM civicrm_activity_contact WHERE civicrm_activity.id = activity_id );";
+    $identify_activities = CRM_Core_DAO::executeQuery($identify_activities_sql);
+    while ($identify_activities->fetch()) {
+      $activity_id = $identify_activities->activity_identifier;
+      $clearedEntities['Activity'][] = $activity_id;
+      civicrm_api3('Activity', 'delete', array('id' => $activity_id));
+      $deleted_activities += 1;
+    }
+
+    // FINALLY: delete any remaining connections (e.g. to mass activities)
+    if (!empty($clearedEntities['ActivityContact'])) {
+      $deleted_connections = count($clearedEntities['ActivityContact']);
+      $entity_list = implode(',', $clearedEntities['ActivityContact']);
+      CRM_Core_DAO::executeQuery("DELETE FROM civicrm_activity_contact WHERE id IN ($entity_list)");
+    }
+
+    $this->log(ts("%1 activities, and %2 associations with activities deleted.", array(1 => $deleted_activities, 2 => $deleted_connections, 'domain' => 'de.systopia.anonymiser')));    
+  }
 
   /**
    * anonymises the contact's membership information,

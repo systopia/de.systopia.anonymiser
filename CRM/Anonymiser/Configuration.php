@@ -269,7 +269,6 @@ class CRM_Anonymiser_Configuration {
   public function getEntitiesToDelete() {
     // basic setup
     $entities = array(
-      'Activity',
       'Address',
       'Email',
       'Phone',

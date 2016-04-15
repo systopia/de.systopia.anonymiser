@@ -5,13 +5,13 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: de.systopia.anonymiser\n"
-"POT-Creation-Date: 2016-04-14 10:50+0200\n"
+"POT-Creation-Date: 2016-04-15 10:57+0200\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Bjoern Endres <Bjoern.Endres@didonai.com>\n"
 "Language-Team: SYSTOPIA <endres@systopia.de>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: \n"
-"Last-Translator: Bjoern Endres <Bjoern.Endres@didonai.com>\n"
 "X-Poedit-Language: German\n"
 "X-Poedit-Country: GERMANY\n"
 "X-Poedit-SourceCharset: utf-8\n"
@@ -43,6 +43,10 @@ msgstr "Alle Logs für %1 Einträge vom Typ %2 aus Tabelle '%3' entfernt."
 #: CRM/Anonymiser/Worker.php
 msgid "%1 %2(s) deleted."
 msgstr "%1 Einträge vom Typ %2 gelöscht."
+
+#: CRM/Anonymiser/Worker.php
+msgid "%1 activities, and %2 associations with activities deleted."
+msgstr "%1 Aktivitäten und %2 Verbindungen zu Aktivitäten gelöscht."
 
 #: CRM/Anonymiser/Worker.php
 msgid "Anonymised Membership [%1]."
