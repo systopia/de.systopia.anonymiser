@@ -1,0 +1,13 @@
+diff --git a/CRM/Logging/Schema.php b/CRM/Logging/Schema.php
+index ba0c038..22babc5 100644
+--- a/CRM/Logging/Schema.php
++++ b/CRM/Logging/Schema.php
+@@ -512,7 +512,7 @@ COLS;
+     $query = preg_replace("/^CREATE TABLE `$table`/i", "CREATE TABLE `{$this->db}`.log_$table", $query);
+     $query = preg_replace("/ AUTO_INCREMENT/i", '', $query);
+     $query = preg_replace("/^  [^`].*$/m", '', $query);
+-    $query = preg_replace("/^\) ENGINE=[^ ]+ /im", ') ENGINE=ARCHIVE ', $query);
++    $query = preg_replace("/^\) ENGINE=[^ ]+ /im", ') ENGINE=InnoDB ', $query);
+ 
+     // log_civicrm_contact.modified_date for example would always be copied from civicrm_contact.modified_date,
+     // so there's no need for a default timestamp and therefore we remove such default timestamps
