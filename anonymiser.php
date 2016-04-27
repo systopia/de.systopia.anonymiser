@@ -142,7 +142,7 @@ function anonymiser_civicrm_summaryActions( &$actions, $contactID ) {
       'ref'             => 'contact-anonymise',
       'key'             => 'contact_anonymise',
       'href'            => CRM_Utils_System::url('civicrm/contact/anonymise', "cid=$contactID"),
-      'permissions'     => array('delete contacts')
+      'permissions'     => array('administer CiviCRM')
     );
 }
 
@@ -150,6 +150,6 @@ function anonymiser_civicrm_summaryActions( &$actions, $contactID ) {
  * Set permission to the API calls
  */
 function anonymiser_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
-  $permissions['contact']['anonymise'] = array('delete contacts');
+  $permissions['contact']['anonymise'] = array('administer CiviCRM');
 }
 
