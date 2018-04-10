@@ -198,7 +198,7 @@ class CRM_Anonymiser_Worker {
                                 FROM civicrm_activity
                                 LEFT JOIN civicrm_activity_contact ON civicrm_activity.id = civicrm_activity_contact.activity_id
                                 WHERE contact_id = $contact_id
-                                  AND 2 <= (SELECT COUNT(DISTINCT(contact_id)) FROM civicrm_activity_contact WHERE civicrm_activity.id = activity_id );";
+                                  AND 2 >= (SELECT COUNT(DISTINCT(contact_id)) FROM civicrm_activity_contact WHERE civicrm_activity.id = activity_id );";
     $identify_activities = CRM_Core_DAO::executeQuery($identify_activities_sql);
     while ($identify_activities->fetch()) {
       $activity_id = $identify_activities->activity_identifier;
