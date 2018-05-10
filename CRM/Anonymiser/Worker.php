@@ -26,7 +26,7 @@ class CRM_Anonymiser_Worker {
   /**
    * Perform the anonymisation process on the given contact
    * CAUTION: This is irreversible
-   * 
+   *
    * @param $contact_id int   ID of the contact
    */
   public static function anonymise_contact($contact_id) {
@@ -39,7 +39,7 @@ class CRM_Anonymiser_Worker {
   /**
    * Perform the anonymisation process on the given contact
    * CAUTION: This is irreversible
-   * 
+   *
    * @param $contact_id int   ID of the contact
    */
   public function anonymiseContact($contact_id) {
@@ -78,7 +78,7 @@ class CRM_Anonymiser_Worker {
     $this->anoymiseContactBase($contact_id, $clearedEntities);
 
 
-    // NOW: FIRST FIND 'free' attached entities, i.e. entities that can be connected to 
+    // NOW: FIRST FIND 'free' attached entities, i.e. entities that can be connected to
     //  any of the processed entities
     $attachedEntities = $this->config->getAttachedEntities();
     foreach ($attachedEntities as $attachedEntity) {
@@ -87,12 +87,12 @@ class CRM_Anonymiser_Worker {
       $entity_table = $this->config->getTableForEntity($attachedEntity);
       $where_clause = $this->config->getAttachedEntitySelector($attachedEntity, $clearedEntities);
       $query = CRM_Core_DAO::executeQuery("SELECT id FROM $entity_table WHERE $where_clause");
-      while ($query->fetch()) { 
+      while ($query->fetch()) {
         // delete right away, if not in the list already
         if (empty($clearedEntities[$attachedEntity]) || !in_array($query->id, $clearedEntities[$attachedEntity])) {
           $this->deleteEntity($attachedEntity, $query->id);
           $clearedEntities[$attachedEntity][] = $query->id;
-          $counter += 1;          
+          $counter += 1;
         }
       }
       $this->log(ts("%1 attached %2(s) deleted.", array(1 => $counter, 2 => $attachedEntity, 'domain' => 'de.systopia.anonymiser')));
@@ -108,7 +108,7 @@ class CRM_Anonymiser_Worker {
           $query = "DELETE FROM `$log_table_name` WHERE id IN ($id_list);";
           CRM_Core_DAO::executeQuery($query);
           $this->log(ts("Removed entries for %1 %2(s) from logging table '%3'.", array(1 => count($entity_ids), 2 => $entity_name, 3 => $log_table_name, 'domain' => 'de.systopia.anonymiser')));
-        } 
+        }
       }
     }
   }
@@ -179,7 +179,7 @@ class CRM_Anonymiser_Worker {
   /**
    * DELETE the activities. This is not straightforward, activities
    * can be linked to a multitude of contacts
-   * 
+   *
    * OUR approach is: if it's linked to up to two contacts, we delete it
    */
   protected function deleteActivities($entity_name, $contact_id, &$clearedEntities) {
@@ -214,7 +214,7 @@ class CRM_Anonymiser_Worker {
       CRM_Core_DAO::executeQuery("DELETE FROM civicrm_activity_contact WHERE id IN ($entity_list)");
     }
 
-    $this->log(ts("%1 activities, and %2 associations with activities deleted.", array(1 => $deleted_activities, 2 => $deleted_connections, 'domain' => 'de.systopia.anonymiser')));    
+    $this->log(ts("%1 activities, and %2 associations with activities deleted.", array(1 => $deleted_activities, 2 => $deleted_connections, 'domain' => 'de.systopia.anonymiser')));
   }
 
   /**
@@ -297,7 +297,7 @@ class CRM_Anonymiser_Worker {
           $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $contribution);
         }
         civicrm_api3('Contribution', 'create', $update_query);
-        $contribution_counter += 1;          
+        $contribution_counter += 1;
       }
 
       // now find and anonymise the LineItems
@@ -319,7 +319,7 @@ class CRM_Anonymiser_Worker {
       $entity_table = $this->config->getTableForEntity('FinancialTrxn');
       $where_clause = $this->config->getAttachedEntitySelector('FinancialTrxn', $clearedEntities);
       $query = CRM_Core_DAO::executeQuery("SELECT id FROM $entity_table WHERE $where_clause");
-      while ($query->fetch()) { 
+      while ($query->fetch()) {
         // anonymise every one of it
         $financial_trxn_id = $query->id;
         $clearedEntities['FinancialTrxn'][] = $financial_trxn_id;
