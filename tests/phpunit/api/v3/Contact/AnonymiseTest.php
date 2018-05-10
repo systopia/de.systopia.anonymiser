@@ -42,7 +42,7 @@ class api_v3_Contact_AnonymiseTest extends \PHPUnit_Framework_TestCase implement
   /**
    * Example: Test that a version is returned.
    */
-  public function testAnonmyseContactWithChildActivity() {
+  public function testAnonymiseContactWithChildActivity() {
     $contact = $this->callApiSuccess('Contact', 'create', [
       'first_name' => 'Roger',
       'last_name' => 'Rabbit',
@@ -50,6 +50,7 @@ class api_v3_Contact_AnonymiseTest extends \PHPUnit_Framework_TestCase implement
     ]);
     $parentActivity = $this->callApiSuccess('Activity', 'create', [
       'source_contact_id' => $contact['id'],
+      'target_contact_id' => $contact['id'],
       'activity_type_id' => 'Meeting',
       'subject' => 'Eat Carrot',
     ]);

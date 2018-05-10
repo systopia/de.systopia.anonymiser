@@ -204,13 +204,15 @@ class CRM_Anonymiser_Worker {
     $identify_activities = CRM_Core_DAO::executeQuery($identify_activities_sql);
     while ($identify_activities->fetch()) {
       $activity_id = $identify_activities->activity_identifier;
-      $clearedEntities['Activity'][$activity_id] = $activity_id;
-      // If the parent is deleted the activity will have already been deleted. We should still
-      // count it by incrementing the count.
-      if (!$identify_activities->parent_id || !isset($clearedEntities['Activity'][$identify_activities->parent_id])) {
-        civicrm_api3('Activity', 'delete', array('id' => $activity_id));
+      if (empty($clearedEntities['Activity'][$activity_id])) {
+        $clearedEntities['Activity'][$activity_id] = $activity_id;
+        // If the parent is deleted the activity will have already been deleted. We should still
+        // count it by incrementing the count.
+        if (!$identify_activities->parent_id || !isset($clearedEntities['Activity'][$identify_activities->parent_id])) {
+          civicrm_api3('Activity', 'delete', array('id' => $activity_id));
+        }
+        $deleted_activities += 1;
       }
-      $deleted_activities += 1;
     }
 
     // FINALLY: delete any remaining connections (e.g. to mass activities)
