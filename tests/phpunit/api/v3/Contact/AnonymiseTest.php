@@ -19,7 +19,7 @@ use Civi\Test\TransactionalInterface;
  *
  * @group headless
  */
-class api_v3_Contact_AnonymiseTest extends \PHPUnit_Framework_TestCase implements HeadlessInterface, HookInterface {
+class api_v3_Contact_AnonymiseTest extends \PHPUnit_Framework_TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
   use Civi\Test\Api3TestTrait;
 
@@ -53,14 +53,58 @@ class api_v3_Contact_AnonymiseTest extends \PHPUnit_Framework_TestCase implement
       'activity_type_id' => 'Meeting',
       'subject' => 'Eat Carrot',
     ]);
-    $childActivity = $this->callApiSuccess('Activity', 'create', [
+    $this->callApiSuccess('Activity', 'create', [
       'source_contact_id' => $contact['id'],
       'activity_type_id' => 'Meeting',
       'subject' => 'Nibble the chewy bits first',
       'parent_id' => $parentActivity['id'],
     ]);
     $this->callApiSuccess('Contact', 'anonymise', ['contact_id' => $contact['id']]);
+  }
 
+  /**
+   * Example: Test that a version is returned.
+   */
+  public function testAnonmyseContactWithLogging() {
+    $this->callApiSuccess('Setting', 'create', ['logging' => 0]);
+    $this->callApiSuccess('Setting', 'create', ['logging' => 1]);
+    $placebo = $this->callApiSuccess('Contact', 'create', [
+      'first_name' => 'Roger',
+      'last_name' => 'Rabbit',
+      'contact_type' => 'Individual',
+      'api.Contribution.create' => [
+        'financial_type_id' => 'Donation',
+        'total_amount' => 4,
+        'date_received' => 'now'
+      ],
+    ]);
+
+    $contact = $this->callApiSuccess('Contact', 'create', [
+      'first_name' => 'Wodger',
+      'last_name' => 'Rabbit',
+      'contact_type' => 'Individual',
+      'api.Contribution.create' => [
+        'financial_type_id' => 'Donation',
+        'total_amount' => 4,
+        'date_received' => 'now'
+      ],
+    ]);
+    $result = $this->callApiSuccess('Contact', 'anonymise', ['contact_id' => $contact['id']]);
+    $this->assertTrue(in_array('Removed entries for 1 LineItem(s) from logging table \'log_civicrm_line_item\'.', $result['values']));
+
+    $this->callApiSuccess('Setting', 'create', ['logging' => 0]);
+  }
+
+  /**
+   * Implements hook_alterLogTables().
+   *
+   * @param array $logTableSpec
+   */
+  public function hook_civicrm_alterLogTables(&$logTableSpec) {
+    foreach (array_keys($logTableSpec) as $tableName) {
+      $logTableSpec[$tableName]['engine'] = 'INNODB';
+      $logTableSpec[$tableName]['engine_config'] = 'ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=4';
+    }
   }
 
 }

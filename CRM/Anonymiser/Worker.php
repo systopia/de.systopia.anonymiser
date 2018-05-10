@@ -307,7 +307,7 @@ class CRM_Anonymiser_Worker {
       }
 
       // now find and anonymise the LineItems
-      $line_items = civicrm_api3('LineItem', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999));
+      $line_items = civicrm_api3('LineItem', 'get', array('contribution_id' => ['IN' => $clearedEntities['Contribution']], ['options' => ['limit' => 0]]));
       foreach ($line_items['values'] as $line_item) {
         $clearedEntities['LineItem'][] = $line_item['id'];
         $fields = $this->config->getOverrideFields('LineItem', $line_item);
