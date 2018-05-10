@@ -105,7 +105,6 @@ class CRM_Anonymiser_Configuration {
         "preferred_language"     => 'null',
         "source"                 => 'null',
         "api_key"                => 'null',
-        "middle_name"            => 'null',
         "formal_title"           => 'null',
         "job_title"              => 'null',
         "primary_contact_id"     => 'null',
