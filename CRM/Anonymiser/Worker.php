@@ -193,12 +193,14 @@ class CRM_Anonymiser_Worker {
       $clearedEntities['ActivityContact'][] = $identify_connections->id;
     }
 
-    // THEN: find and delete the activities
+    // THEN: find activities with no more that 2 contacts involved. These will be deleted as they are assumed to be 'primarily about'
+    // the contact being anonymised (note there is some risk when deleting admin contacts or contacts who might register on
+    // behalf of an organisation.
     $identify_activities_sql = "SELECT civicrm_activity.id AS activity_identifier
                                 FROM civicrm_activity
                                 LEFT JOIN civicrm_activity_contact ON civicrm_activity.id = civicrm_activity_contact.activity_id
                                 WHERE contact_id = $contact_id
-                                  AND 2 <= (SELECT COUNT(DISTINCT(contact_id)) FROM civicrm_activity_contact WHERE civicrm_activity.id = activity_id );";
+                                  AND 2 >= (SELECT COUNT(DISTINCT(contact_id)) FROM civicrm_activity_contact WHERE civicrm_activity.id = activity_id );";
     $identify_activities = CRM_Core_DAO::executeQuery($identify_activities_sql);
     while ($identify_activities->fetch()) {
       $activity_id = $identify_activities->activity_identifier;
