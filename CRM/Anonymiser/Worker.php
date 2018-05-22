@@ -110,6 +110,11 @@ class CRM_Anonymiser_Worker {
           $this->log(ts("Removed entries for %1 %2(s) from logging table '%3'.", array(1 => count($entity_ids), 2 => $entity_name, 3 => $log_table_name, 'domain' => 'de.systopia.anonymiser')));
         }
       }
+
+      foreach ($this->config->getAffectedLogTables() as $affected_log_table) {
+        $entity_name = $this->config->getEntityForTable($affected_log_table);
+        $this->deleteRelatedLogs($entity_name, $contact_id);
+      }
     }
   }
 
@@ -134,6 +139,28 @@ class CRM_Anonymiser_Worker {
     civicrm_api3('Contact', 'create', $erase_query);
 
     // TODO: anything else?
+  }
+
+  /**
+   * Delete any other log entries related to the contact, even where we did not delete the entity itself
+   * (possibly because it had already been deleted, or is no longer related)
+   * @param $entity_name string the name of the entity as used by the API
+   * @param $contact_id  int    ID of the contact
+   */
+  protected function deleteRelatedLogs($entity_name, $contact_id) {
+    $table_name     = $this->config->getTableForEntity($entity_name);
+    $log_table_name = $this->config->getLogTableForTable($table_name);
+
+    $identifiers = $this->config->getIdentifiers($entity_name, $contact_id);
+    if ($identifiers['join']) return; // Only entities that refer directly to the contact
+    foreach ($identifiers['sql'] as $where_clause) {
+      $query = "DELETE FROM `$log_table_name` WHERE $where_clause";
+      $result = CRM_Core_DAO::executeQuery($query);
+      $row_count = $result->affectedRows();
+      if ($row_count) {
+        $this->log(ts("Removed %1 additional log entries referencing this contact from logging table '%2'.", array(1 => $row_count, 2 => $log_table_name, 'domain' => 'de.systopia.anonymiser')));
+      }
+    }
   }
 
   /**
