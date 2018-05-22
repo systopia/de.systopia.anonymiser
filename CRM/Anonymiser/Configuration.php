@@ -33,7 +33,7 @@ class CRM_Anonymiser_Configuration {
 
   /**
    * if this returns true, the configuration
-   * wants all groups associations for the contact 
+   * wants all groups associations for the contact
    * to be deleted, otherwise they will remain unchanged
    */
   public function deleteGroups() {
@@ -52,12 +52,12 @@ class CRM_Anonymiser_Configuration {
 
   /**
    * if this returns true, the configuration
-   * wants event participations to be deleted, 
+   * wants event participations to be deleted,
    * otherwise they should be anonymised
    */
   public function deleteParticipations() {
     return FALSE;
-    
+
   }
 
   /**
@@ -67,7 +67,7 @@ class CRM_Anonymiser_Configuration {
    */
   public function deleteContributions() {
     return FALSE;
-    
+
   }
 
   /**
@@ -78,7 +78,7 @@ class CRM_Anonymiser_Configuration {
     return FALSE;
   }
 
-  
+
 
 
 
@@ -91,7 +91,7 @@ class CRM_Anonymiser_Configuration {
    *
    * @param $entity_name  array  the entity name as used by the API
    * @param $entity       array  entity data
-   * 
+   *
    * @return array field_name => field_type map
    */
   public function getOverrideFields($entity_name, $entity = array()) {
@@ -105,7 +105,6 @@ class CRM_Anonymiser_Configuration {
         "preferred_language"     => 'null',
         "source"                 => 'null',
         "api_key"                => 'null',
-        "middle_name"            => 'null',
         "formal_title"           => 'null',
         "job_title"              => 'null',
         "primary_contact_id"     => 'null',
@@ -143,7 +142,7 @@ class CRM_Anonymiser_Configuration {
         "end_date"               => 'year_ceil',
         "source"                 => 'null',
         );
-    
+
     } elseif ($entity_name == 'Participant') {
       $fields = array(
         "register_date"          => 'month_floor',
@@ -196,13 +195,13 @@ class CRM_Anonymiser_Configuration {
         return sha1($field_name . microtime(TRUE));
 
       case 'null':
-        return ''; 
+        return '';
 
       case 'true':
-        return '1'; 
+        return '1';
 
       case 'false':
-        return '0'; 
+        return '0';
 
       case 'year_floor':
       case 'year_ceil':
@@ -387,7 +386,7 @@ class CRM_Anonymiser_Configuration {
    * generate a SQL WHERE claue to identify all instances
    * attached to the list of cleared entities
    */
-  public function getAttachedEntitySelector($entity_name, $clearedEntities) {    
+  public function getAttachedEntitySelector($entity_name, $clearedEntities) {
     // otherwise, just create selectors for all cleared entities
     $clauses = array();
     foreach ($clearedEntities as $clearedEntity => $entity_ids) {
@@ -412,7 +411,7 @@ class CRM_Anonymiser_Configuration {
 
 
   /**
-   * Get a list of table names that will be touched in an 
+   * Get a list of table names that will be touched in an
    * anonymisation process given the current configuration
    */
   public function getAffectedTables() {
@@ -446,7 +445,7 @@ class CRM_Anonymiser_Configuration {
   }
 
   /**
-   * Get a list of table names in quotes that will be touched in an 
+   * Get a list of table names in quotes that will be touched in an
    * anonymisation process given the current configuration
    */
   public function getAffectedLogTables($quotation = '') {
@@ -468,7 +467,7 @@ class CRM_Anonymiser_Configuration {
     $anonymise_logs = TRUE;
     if (!$anonymise_logs) return FALSE;
 
-    // get the tables  
+    // get the tables
     $affected_log_tables = $this->getAffectedLogTables("'");
     $affected_log_table_list = implode(',', $affected_log_tables);
 
@@ -483,7 +482,7 @@ class CRM_Anonymiser_Configuration {
 
   /**
    * Will check if the system is ready for
-   * an anonymisation process under the current 
+   * an anonymisation process under the current
    * configuration
    *
    * @throws Exception if system not ready.

@@ -26,7 +26,7 @@ class CRM_Anonymiser_Worker {
   /**
    * Perform the anonymisation process on the given contact
    * CAUTION: This is irreversible
-   * 
+   *
    * @param $contact_id int   ID of the contact
    */
   public static function anonymise_contact($contact_id) {
@@ -39,7 +39,7 @@ class CRM_Anonymiser_Worker {
   /**
    * Perform the anonymisation process on the given contact
    * CAUTION: This is irreversible
-   * 
+   *
    * @param $contact_id int   ID of the contact
    */
   public function anonymiseContact($contact_id) {
@@ -78,7 +78,7 @@ class CRM_Anonymiser_Worker {
     $this->anoymiseContactBase($contact_id, $clearedEntities);
 
 
-    // NOW: FIRST FIND 'free' attached entities, i.e. entities that can be connected to 
+    // NOW: FIRST FIND 'free' attached entities, i.e. entities that can be connected to
     //  any of the processed entities
     $attachedEntities = $this->config->getAttachedEntities();
     foreach ($attachedEntities as $attachedEntity) {
@@ -87,12 +87,12 @@ class CRM_Anonymiser_Worker {
       $entity_table = $this->config->getTableForEntity($attachedEntity);
       $where_clause = $this->config->getAttachedEntitySelector($attachedEntity, $clearedEntities);
       $query = CRM_Core_DAO::executeQuery("SELECT id FROM $entity_table WHERE $where_clause");
-      while ($query->fetch()) { 
+      while ($query->fetch()) {
         // delete right away, if not in the list already
         if (empty($clearedEntities[$attachedEntity]) || !in_array($query->id, $clearedEntities[$attachedEntity])) {
           $this->deleteEntity($attachedEntity, $query->id);
           $clearedEntities[$attachedEntity][] = $query->id;
-          $counter += 1;          
+          $counter += 1;
         }
       }
       $this->log(ts("%1 attached %2(s) deleted.", array(1 => $counter, 2 => $attachedEntity, 'domain' => 'de.systopia.anonymiser')));
@@ -108,7 +108,7 @@ class CRM_Anonymiser_Worker {
           $query = "DELETE FROM `$log_table_name` WHERE id IN ($id_list);";
           CRM_Core_DAO::executeQuery($query);
           $this->log(ts("Removed entries for %1 %2(s) from logging table '%3'.", array(1 => count($entity_ids), 2 => $entity_name, 3 => $log_table_name, 'domain' => 'de.systopia.anonymiser')));
-        } 
+        }
       }
     }
   }
@@ -179,7 +179,7 @@ class CRM_Anonymiser_Worker {
   /**
    * DELETE the activities. This is not straightforward, activities
    * can be linked to a multitude of contacts
-   * 
+   *
    * OUR approach is: if it's linked to up to two contacts, we delete it
    */
   protected function deleteActivities($entity_name, $contact_id, &$clearedEntities) {
@@ -193,18 +193,26 @@ class CRM_Anonymiser_Worker {
       $clearedEntities['ActivityContact'][] = $identify_connections->id;
     }
 
-    // THEN: find and delete the activities
-    $identify_activities_sql = "SELECT civicrm_activity.id AS activity_identifier
+    // THEN: find activities with no more that 2 contacts involved. These will be deleted as they are assumed to be 'primarily about'
+    // the contact being anonymised (note there is some risk when deleting admin contacts or contacts who might register on
+    // behalf of an organisation.
+    $identify_activities_sql = "SELECT civicrm_activity.id AS activity_identifier, parent_id
                                 FROM civicrm_activity
                                 LEFT JOIN civicrm_activity_contact ON civicrm_activity.id = civicrm_activity_contact.activity_id
                                 WHERE contact_id = $contact_id
-                                  AND 2 <= (SELECT COUNT(DISTINCT(contact_id)) FROM civicrm_activity_contact WHERE civicrm_activity.id = activity_id );";
+                                  AND 2 >= (SELECT COUNT(DISTINCT(contact_id)) FROM civicrm_activity_contact WHERE civicrm_activity.id = activity_id );";
     $identify_activities = CRM_Core_DAO::executeQuery($identify_activities_sql);
     while ($identify_activities->fetch()) {
       $activity_id = $identify_activities->activity_identifier;
-      $clearedEntities['Activity'][] = $activity_id;
-      civicrm_api3('Activity', 'delete', array('id' => $activity_id));
-      $deleted_activities += 1;
+      if (empty($clearedEntities['Activity'][$activity_id])) {
+        $clearedEntities['Activity'][$activity_id] = $activity_id;
+        // If the parent is deleted the activity will have already been deleted. We should still
+        // count it by incrementing the count.
+        if (!$identify_activities->parent_id || !isset($clearedEntities['Activity'][$identify_activities->parent_id])) {
+          civicrm_api3('Activity', 'delete', array('id' => $activity_id));
+        }
+        $deleted_activities += 1;
+      }
     }
 
     // FINALLY: delete any remaining connections (e.g. to mass activities)
@@ -214,7 +222,7 @@ class CRM_Anonymiser_Worker {
       CRM_Core_DAO::executeQuery("DELETE FROM civicrm_activity_contact WHERE id IN ($entity_list)");
     }
 
-    $this->log(ts("%1 activities, and %2 associations with activities deleted.", array(1 => $deleted_activities, 2 => $deleted_connections, 'domain' => 'de.systopia.anonymiser')));    
+    $this->log(ts("%1 activities, and %2 associations with activities deleted.", array(1 => $deleted_activities, 2 => $deleted_connections, 'domain' => 'de.systopia.anonymiser')));
   }
 
   /**
@@ -297,11 +305,11 @@ class CRM_Anonymiser_Worker {
           $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $contribution);
         }
         civicrm_api3('Contribution', 'create', $update_query);
-        $contribution_counter += 1;          
+        $contribution_counter += 1;
       }
 
       // now find and anonymise the LineItems
-      $line_items = civicrm_api3('LineItem', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999));
+      $line_items = civicrm_api3('LineItem', 'get', array('contribution_id' => ['IN' => $clearedEntities['Contribution']], ['options' => ['limit' => 0]]));
       foreach ($line_items['values'] as $line_item) {
         $clearedEntities['LineItem'][] = $line_item['id'];
         $fields = $this->config->getOverrideFields('LineItem', $line_item);
@@ -319,7 +327,7 @@ class CRM_Anonymiser_Worker {
       $entity_table = $this->config->getTableForEntity('FinancialTrxn');
       $where_clause = $this->config->getAttachedEntitySelector('FinancialTrxn', $clearedEntities);
       $query = CRM_Core_DAO::executeQuery("SELECT id FROM $entity_table WHERE $where_clause");
-      while ($query->fetch()) { 
+      while ($query->fetch()) {
         // anonymise every one of it
         $financial_trxn_id = $query->id;
         $clearedEntities['FinancialTrxn'][] = $financial_trxn_id;
