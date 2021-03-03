@@ -75,7 +75,7 @@ class CRM_Anonymiser_Configuration {
    */
   public function shouldDeleteAttribute($key) {
     // TODO: look into config
-    return FALSE;
+    return TRUE;
   }
 
 
@@ -126,10 +126,13 @@ class CRM_Anonymiser_Configuration {
         "email_greeting_display" => 'null',
         "addressee_id"           => 'null',
         "addressee_display"      => 'null',
+        "birth_date"             => 'null',
+        "deceased_date"          => 'null',
+        "created_date"           => 'null',
         "is_deleted"             => 'true',
       );
 
-      if ($this->shouldDeleteAttribute('contact_dates')) {
+      if (!$this->shouldDeleteAttribute('contact_dates')) {
         $fields['birth_date']    = 'month_floor';
         $fields['deceased_date'] = 'month_floor';
         $fields['created_date']  = 'year_floor';
