@@ -141,6 +141,7 @@ function anonymiser_civicrm_summaryActions( &$actions, $contactID ) {
       'weight'          => 5,
       'ref'             => 'contact-anonymise',
       'key'             => 'contact_anonymise',
+      'class'           => 'crm-popup small-popup',
       'href'            => CRM_Utils_System::url('civicrm/contact/anonymise', "cid=$contactID"),
       'permissions'     => array('administer CiviCRM')
     );

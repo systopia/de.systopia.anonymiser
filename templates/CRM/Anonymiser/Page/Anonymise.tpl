@@ -7,7 +7,7 @@
 | License: AGPLv3, see LICENSE file                      |
 +-------------------------------------------------------*}
 
-<p>{ts domain=de.systopia.anonymiser}Warning!{/ts}</p>
+<h3>{ts domain=de.systopia.anonymiser}Warning!{/ts}</h3>
 <p>
   {ts domain=de.systopia.anonymiser 1=$contact.display_name 2=$contact.id}You are about to anonymise the contact %1 [%2]. This will anonymise statistically relevant data and delete everything else.{/ts}
   {ts domain=de.systopia.anonymiser}This process can not be reversed!{/ts}
@@ -19,7 +19,7 @@
     {ts domain=de.systopia.anonymiser}Are you sure you want to anonymise this contact?{/ts}
   </p>
   <div class="ui-dialog-buttonset">
-    <button type="button" id="anonymise-contact-button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"><span class="ui-button-icon-primary ui-icon ui-icon-check"></span><span class="ui-button-text">{ts domain=de.systopia.anonymiser}YES{/ts}</span></button>
+    <button type="button" id="anonymise-contact-button" role="button"><span><i class="crm-i fa-user-secret"></i>&nbsp;{ts domain=de.systopia.anonymiser}YES{/ts}</span></button>
   </div>
 </div>
 
