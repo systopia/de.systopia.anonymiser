@@ -62,11 +62,14 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task
       }
     }
     if (count($current_batch_contact_ids) > 0) {
-      new CRM_Anonymiser_AnonymiserJob(
-          $current_batch_contact_ids,
-          E::ts("Anonymising contacts %1 - %2", [
-              1 => $current_offset + 1,
-              2 => $current_offset + count($current_batch_contact_ids)])
+      $queue->createItem(
+        new CRM_Anonymiser_AnonymiserJob(
+            $current_batch_contact_ids,
+            E::ts("Anonymising contacts %1 - %2", [
+                1 => $current_offset + 1,
+                2 => $current_offset + count($current_batch_contact_ids)]),
+            $log_file
+        )
       );
     }
 
