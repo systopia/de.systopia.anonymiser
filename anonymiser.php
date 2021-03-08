@@ -15,6 +15,8 @@
 
 require_once 'anonymiser.civix.php';
 
+use CRM_Anonymiser_ExtensionUtil as E;
+
 /**
  * Implements hook_civicrm_config().
  *
@@ -150,6 +152,22 @@ function anonymiser_civicrm_summaryActions( &$actions, $contactID ) {
       'href'            => CRM_Utils_System::url('civicrm/contact/anonymise', "cid=$contactID"),
       'permissions'     => array('administer CiviCRM')
     );
+}
+
+/**
+ * add anonymisaion runner for search result
+ */
+function anonymiser_civicrm_searchTasks($objectType, &$tasks)
+{
+  // add "anonymise" task to contact search action
+  if ($objectType == 'contact') {
+    $tasks[] = [
+        'title'       => E::ts('Anonymise'),
+        'class'       => 'CRM_Anonymiser_Form_Task_Anonymise',
+        'result'      => false,
+        'permissions' => ['administer CiviCRM'],
+    ];
+  }
 }
 
 /**
