@@ -40,6 +40,12 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task
         ]
     );
 
+    // create a log file
+    $log_file = tempnam(sys_get_temp_dir(), CRM_Anonymiser_Form_LogViewer::LOG_FILE_PREFIX);
+    file_put_contents($log_file,
+                      E::ts("Anonymisation Run %1", [1 => date('Y-m-d H:i:s')]).
+                      "\n================================================\n");
+
     // fill the runner queue
     $current_batch_contact_ids = [];
     $contact_count = count($this->_contactIds);
@@ -54,7 +60,8 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task
                 $current_batch_contact_ids,
                 E::ts("Anonymising contacts %1 - %2", [
                     1 => $current_offset + 1,
-                    2 => $current_offset + self::BATCH_SIZE])
+                    2 => $current_offset + self::BATCH_SIZE]),
+                $log_file
             )
         );
         $current_offset += self::BATCH_SIZE;
@@ -75,12 +82,13 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task
 
     // create the link to the download screen
     $return_link = base64_encode(CRM_Core_Session::singleton()->readUserContext());
+    $log_link = CRM_Utils_System::url('civicrm/contact/anonymise/log', "log_file={$log_file}&return_url={$return_link}");
     $runner = new CRM_Queue_Runner(
         [
             'title'     => E::ts("Anonymising %1 contacts...", [1 => $contact_count]),
             'queue'     => $queue,
-            'errorMode' => CRM_Queue_Runner::ERROR_CONTINUE,
-            'onEndUrl'  => $return_link,
+            'errorMode' => CRM_Queue_Runner::ERROR_ABORT,
+            'onEndUrl'  => $log_link,
         ]
     );
 
