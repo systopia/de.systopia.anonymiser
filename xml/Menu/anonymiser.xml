@@ -6,4 +6,11 @@
     <title>Anonymise</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/admin/setting/anonymiser</path>
+    <title>Anonymiser Settings</title>
+    <page_callback>CRM_Admin_Form_Generic</page_callback>
+    <access_arguments>administer CiviCRM</access_arguments>
+    <weight>100</weight>
+  </item>
 </menu>
