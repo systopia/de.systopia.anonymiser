@@ -159,3 +159,12 @@ function anonymiser_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
   $permissions['contact']['anonymise'] = array('administer CiviCRM');
 }
 
+/**
+ * Implements hook_civicrm_container().
+ *
+ * @param Symfony\Component\DependencyInjection\ContainerBuilder $container
+ */
+function anonymiser_civicrm_container(Symfony\Component\DependencyInjection\ContainerBuilder $container) {
+  $container->addCompilerPass(new Civi\Anonymiser\CompilerPass());
+}
+
