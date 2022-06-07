@@ -5,16 +5,60 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: de.systopia.anonymiser\n"
-"POT-Creation-Date: 2016-04-15 10:57+0200\n"
+"POT-Creation-Date: 2021-03-08 12:13+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Bjoern Endres <Bjoern.Endres@didonai.com>\n"
 "Language-Team: SYSTOPIA <endres@systopia.de>\n"
+"Language: de_DE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: German\n"
-"X-Poedit-Country: GERMANY\n"
 "X-Poedit-SourceCharset: utf-8\n"
+"X-Generator: Poedit 2.0.6\n"
+
+#: CRM/Anonymiser/AnonymiserJob.php
+msgid "Anonymisation of contact [%1]"
+msgstr "Anonymisierung von Kontakt [%1]"
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Log file doesn't exist or is not accessible"
+msgstr "Die Logdatei ist nicht vorhanden oder kann nicht angezeigt werden."
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Illegal log file path requested"
+msgstr "Ungültiger Pfad für Logdatei übermittelt"
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Anonymisation Log"
+msgstr "Anonymisierungs-Log"
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Download"
+msgstr "Herunterladen"
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Done"
+msgstr "Fertig"
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Anonymisation %1.txt"
+msgstr "Anonymisierung %1.txt"
+
+#: CRM/Anonymiser/Form/Task/Anonymise.php
+msgid "Anonymise %1 Contacts"
+msgstr "%1 Kontakte Anonymisieren"
+
+#: CRM/Anonymiser/Form/Task/Anonymise.php
+msgid "Anonymisation Run %1"
+msgstr "Anonymisierungslauf %1"
+
+#: CRM/Anonymiser/Form/Task/Anonymise.php
+msgid "Anonymising contacts %1 - %2"
+msgstr "Anonymisiere Kontakte %1 bis %2"
+
+#: CRM/Anonymiser/Form/Task/Anonymise.php
+msgid "Anonymising %1 contacts..."
+msgstr "Anonymisierung von %1 Kontakten"
 
 #: CRM/Anonymiser/Page/Anonymise.php anonymiser.php
 msgid "Anonymise Contact"
@@ -39,6 +83,14 @@ msgstr "%1 assoiziierte Einträge vom Typ %2 gelöscht."
 #: CRM/Anonymiser/Worker.php
 msgid "Removed entries for %1 %2(s) from logging table '%3'."
 msgstr "Alle Logs für %1 Einträge vom Typ %2 aus Tabelle '%3' entfernt."
+
+#: CRM/Anonymiser/Worker.php
+msgid ""
+"Removed %1 additional log entries referencing this contact from logging "
+"table '%2'."
+msgstr ""
+"%1 zusätzliche Logeinträge für diesen Kontakt von Tabelle Logtabelle '%2' "
+"entfernt."
 
 #: CRM/Anonymiser/Worker.php
 msgid "%1 %2(s) deleted."
@@ -73,8 +125,12 @@ msgid "0 Participant entities found for anonymisation."
 msgstr "Es liegen keine Veranstaltungsteilnahmen zur Anonymisierung vor."
 
 #: CRM/Anonymiser/Worker.php
-msgid "Anonymised %1 contributions, %2 associated line items and %3 associated financial transactions."
-msgstr "%1 Zuwendungen, %2 anhängige Einzelposten (LineItems) und %3 zugehörige Transaktionseinträge wurden anonymisiert."
+msgid ""
+"Anonymised %1 contributions, %2 associated line items and %3 associated "
+"financial transactions."
+msgstr ""
+"%1 Zuwendungen, %2 anhängige Einzelposten (LineItems) und %3 zugehörige "
+"Transaktionseinträge wurden anonymisiert."
 
 #: CRM/Anonymiser/Worker.php
 msgid "Anonymised RecurringContribution [%1]."
@@ -88,13 +144,42 @@ msgstr "Wiederkehrende Zuwedung [%1] benötigt keine Anonymisierung."
 msgid "0 RecurringContribution entities found for anonymisation."
 msgstr "Es liegen keine Wiederkehrende Zuwedungen zur Anonymisierung vor."
 
+#: anonymiser.php
+msgid "Anonymise"
+msgstr "Anonymisieren"
+
+#: templates/CRM/Anonymiser/Form/Task/Anonymise.tpl
+msgid "Warning"
+msgstr "Warnung"
+
+#: templates/CRM/Anonymiser/Form/Task/Anonymise.tpl
+msgid ""
+"This will anonymise the selected contacts, an action that <strong>can not be "
+"reversed</strong>."
+msgstr ""
+"Dies wird die selektierten Kontakte anonymisieren. Diese Aktion kann "
+"<strong>nicht rückgängig gemacht werden</strong>."
+
+#: templates/CRM/Anonymiser/Form/Task/Anonymise.tpl
+msgid ""
+"Please make sure you know what you're doing, and that your selection is "
+"accurate."
+msgstr ""
+"Bitte seien Sie sicher dass Sie das wirklich wollen, und dass die Selektion "
+"korrekt ist."
+
 #: templates/CRM/Anonymiser/Page/Anonymise.tpl
 msgid "Warning!"
 msgstr "Warnung!"
 
 #: templates/CRM/Anonymiser/Page/Anonymise.tpl
-msgid "You are about to anonymise the contact %1 [%2]. This will anonymise statistically relevant data and delete everything else."
-msgstr "Sie möchten den Kontakt  %1 [%2] anonymisieren. Dies würde nur einige statistisch relevante Merkmale erhalten und alle anderen Daten des Kontakts löschen."
+msgid ""
+"You are about to anonymise the contact %1 [%2]. This will anonymise "
+"statistically relevant data and delete everything else."
+msgstr ""
+"Sie möchten den Kontakt  %1 [%2] anonymisieren. Dies würde nur einige "
+"statistisch relevante Merkmale erhalten und alle anderen Daten des Kontakts "
+"löschen."
 
 #: templates/CRM/Anonymiser/Page/Anonymise.tpl
 msgid "This process can not be reversed!"
@@ -102,11 +187,14 @@ msgstr "Dieser Vorgang kann nicht rückgängig gemacht werden!"
 
 #: templates/CRM/Anonymiser/Page/Anonymise.tpl
 msgid "Please note that the data might still be present in old backups."
-msgstr "Bedenken Sie aber, dass die ursprünglichen Daten noch in alten Backups des System vorliegen können."
+msgstr ""
+"Bedenken Sie aber, dass die ursprünglichen Daten noch in alten Backups des "
+"System vorliegen können."
 
 #: templates/CRM/Anonymiser/Page/Anonymise.tpl
 msgid "Are you sure you want to anonymise this contact?"
-msgstr "Sind Sie wirklich sicher dass Sie diesen Kontakt anonymisieren möchten?"
+msgstr ""
+"Sind Sie wirklich sicher dass Sie diesen Kontakt anonymisieren möchten?"
 
 #: templates/CRM/Anonymiser/Page/Anonymise.tpl
 msgid "YES"
@@ -123,4 +211,3 @@ msgstr "Protokoll:"
 #: templates/CRM/Anonymiser/Page/Anonymise.tpl
 msgid "Contact %1 [%2] successfully anonymised."
 msgstr "Kontakt %1 [%2] wurde erfolgreich anonymisiert."
-

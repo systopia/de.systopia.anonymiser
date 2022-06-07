@@ -155,6 +155,22 @@ function anonymiser_civicrm_summaryActions( &$actions, $contactID ) {
 }
 
 /**
+ * add anonymisaion runner for search result
+ */
+function anonymiser_civicrm_searchTasks($objectType, &$tasks)
+{
+  // add "anonymise" task to contact search action
+  if ($objectType == 'contact') {
+    $tasks[] = [
+        'title'       => E::ts('Anonymise'),
+        'class'       => 'CRM_Anonymiser_Form_Task_Anonymise',
+        'result'      => false,
+        'permissions' => ['administer CiviCRM'],
+    ];
+  }
+}
+
+/**
  * Set permission to the API calls
  */
 function anonymiser_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {

@@ -13,4 +13,16 @@
     <access_arguments>administer CiviCRM</access_arguments>
     <weight>100</weight>
   </item>
+  <item>
+    <path>civicrm/contact/anonymise</path>
+    <page_callback>CRM_Anonymiser_Page_Anonymise</page_callback>
+    <title>Anonymise</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/contact/anonymise/log</path>
+    <page_callback>CRM_Anonymiser_Form_LogViewer</page_callback>
+    <title>Anonymisation Log</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
 </menu>

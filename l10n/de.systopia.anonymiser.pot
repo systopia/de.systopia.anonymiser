@@ -5,11 +5,55 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: de.systopia.anonymiser\n"
-"POT-Creation-Date: 2016-04-15 10:57+0200\n"
+"POT-Creation-Date: 2021-03-08 12:13+0100\n"
 "Language-Team: CiviCRM Translators <civicrm-translators@lists.civicrm.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: CRM/Anonymiser/AnonymiserJob.php
+msgid "Anonymisation of contact [%1]"
+msgstr ""
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Log file doesn't exist or is not accessible"
+msgstr ""
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Illegal log file path requested"
+msgstr ""
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Anonymisation Log"
+msgstr ""
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Download"
+msgstr ""
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Done"
+msgstr ""
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Anonymisation %1.txt"
+msgstr ""
+
+#: CRM/Anonymiser/Form/Task/Anonymise.php
+msgid "Anonymise %1 Contacts"
+msgstr ""
+
+#: CRM/Anonymiser/Form/Task/Anonymise.php
+msgid "Anonymisation Run %1"
+msgstr ""
+
+#: CRM/Anonymiser/Form/Task/Anonymise.php
+msgid "Anonymising contacts %1 - %2"
+msgstr ""
+
+#: CRM/Anonymiser/Form/Task/Anonymise.php
+msgid "Anonymising %1 contacts..."
+msgstr ""
 
 #: CRM/Anonymiser/Page/Anonymise.php anonymiser.php
 msgid "Anonymise Contact"
@@ -33,6 +77,12 @@ msgstr ""
 
 #: CRM/Anonymiser/Worker.php
 msgid "Removed entries for %1 %2(s) from logging table '%3'."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid ""
+"Removed %1 additional log entries referencing this contact from logging "
+"table '%2'."
 msgstr ""
 
 #: CRM/Anonymiser/Worker.php
@@ -83,6 +133,26 @@ msgstr ""
 
 #: CRM/Anonymiser/Worker.php
 msgid "0 RecurringContribution entities found for anonymisation."
+msgstr ""
+
+#: anonymiser.php
+msgid "Anonymise"
+msgstr ""
+
+#: templates/CRM/Anonymiser/Form/Task/Anonymise.tpl
+msgid "Warning"
+msgstr ""
+
+#: templates/CRM/Anonymiser/Form/Task/Anonymise.tpl
+msgid ""
+"This will anonymise the selected contacts, an action that <strong>can not be "
+"reversed</strong>."
+msgstr ""
+
+#: templates/CRM/Anonymiser/Form/Task/Anonymise.tpl
+msgid ""
+"Please make sure you know what you're doing, and that your selection is "
+"accurate."
 msgstr ""
 
 #: templates/CRM/Anonymiser/Page/Anonymise.tpl
