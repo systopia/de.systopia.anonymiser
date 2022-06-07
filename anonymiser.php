@@ -15,6 +15,8 @@
 
 require_once 'anonymiser.civix.php';
 
+use CRM_Anonymiser_ExtensionUtil as E;
+
 /**
  * Implements hook_civicrm_config().
  *
@@ -158,4 +160,23 @@ function anonymiser_civicrm_summaryActions( &$actions, $contactID ) {
 function anonymiser_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
   $permissions['contact']['anonymise'] = array('administer CiviCRM');
 }
+
+/**
+ * Implements hook_civicrm_navigationMenu().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_navigationMenu
+ */
+function anonymiser_civicrm_navigationMenu(&$menu) {
+  _anonymiser_civix_insert_navigation_menu($menu, 'Administer', [
+    'label' => E::ts('Anonymiser Settings'),
+    'name' => 'anonymiser',
+    'permission' => 'administer CiviCRM',
+    'child' => [],
+    'operator' => 'AND',
+    'separator' => 0,
+    'url' => CRM_Utils_System::url('civicrm/admin/setting/anonymiser', 'reset=1', TRUE),
+  ]);
+  _anonymiser_civix_navigationMenu($menu);
+}
+
 
