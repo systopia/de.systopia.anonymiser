@@ -13,6 +13,8 @@
 | written permission from the original author(s).        |
 +-------------------------------------------------------*/
 
+use CRM_Anonymiser_ExtensionUtil as E;
+
 /**
  * This class wraps all configuraition options
  * for the anonymisation process
@@ -508,5 +510,42 @@ class CRM_Anonymiser_Configuration {
     }
 
     // TODO: WARNING WHEN CUSTOM FIELDS FOR ANONYMISED (NOT DELETED) ENTITIES
+  }
+
+  /**
+   * Return the attached custom tables for this entity
+   *
+   * @param $entity
+   *
+   * @return mixed
+   * @throws \CiviCRM_API3_Exception
+   */
+  public function getCustomTablesForEntity($entity) {
+    if (!isset(\Civi::$statics[E::LONG_NAME]['custom_tables'][$entity]) && !is_array(\Civi::$statics[E::LONG_NAME]['custom_tables'][$entity])) {
+      \Civi::$statics[E::LONG_NAME]['custom_tables'][$entity] = [];
+      $extends = [$entity];
+      switch ($entity) {
+        case 'Participant':
+          $extends[] = 'ParticipantRole';
+          $extends[] = 'ParticipantEventName';
+          $extends[] = 'ParticipantEventType';
+          break;
+        case 'Contact':
+          $extends[] = 'Individual';
+          $extends[] = 'Household';
+          $extends[] = 'Organization';
+          break;
+      }
+      $result = civicrm_api3('CustomGroup', 'get', [
+        'sequential' => 1,
+        'return' => ["table_name"],
+        'extends' => ['IN' => $extends],
+        'options' => ['limit' => 0],
+      ]);
+      foreach($result['values'] as $custom_group) {
+        \Civi::$statics[E::LONG_NAME]['custom_tables'][$entity][] = $custom_group['table_name'];
+      }
+    }
+    return \Civi::$statics[E::LONG_NAME]['custom_tables'][$entity];
   }
 }
