@@ -33,7 +33,7 @@ class CRM_Anonymiser_Configuration {
    * otherwise they will remain unchanged
    */
   public function deleteTags() {
-    return FALSE;
+    return \Civi::settings()->get('anonymiser_tags');
   }
 
   /**
@@ -42,7 +42,7 @@ class CRM_Anonymiser_Configuration {
    * to be deleted, otherwise they will remain unchanged
    */
   public function deleteGroups() {
-    return FALSE;
+    return \Civi::settings()->get('anonymiser_groups');
   }
 
   /**
@@ -51,8 +51,7 @@ class CRM_Anonymiser_Configuration {
    * they should be anonymised
    */
   public function deleteMemberships() {
-    return FALSE;
-
+    return \Civi::settings()->get('anonymiser_memberships');
   }
 
   /**
@@ -61,8 +60,7 @@ class CRM_Anonymiser_Configuration {
    * otherwise they should be anonymised
    */
   public function deleteParticipations() {
-    return FALSE;
-
+    return \Civi::settings()->get('anonymiser_participants');
   }
 
   /**
@@ -71,15 +69,16 @@ class CRM_Anonymiser_Configuration {
    * they should be anonymised
    */
   public function deleteContributions() {
-    return FALSE;
-
+    return \Civi::settings()->get('anonymiser_contributions');
   }
 
   /**
    * looks into the settings, if certain key should be deleted/reset
    */
   public function shouldDeleteAttribute($key) {
-    // TODO: look into config
+    if (\Civi::settings()->hasExplict('anonymiser_'.$key)) {
+      return \Civi::settings()->get('anonymiser_'.$key);
+    }
     return TRUE;
   }
 
