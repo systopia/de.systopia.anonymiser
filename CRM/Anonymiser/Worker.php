@@ -103,6 +103,8 @@ class CRM_Anonymiser_Worker {
       $this->log(ts("%1 attached %2(s) deleted.", array(1 => $counter, 2 => $attachedEntity, 'domain' => 'de.systopia.anonymiser')));
     }
 
+    $this->clearCustomData($clearedEntities);
+
     // FINALLY clean FULL LOGGING tables
     if ($this->config->deleteLogs()) {
       foreach ($clearedEntities as $entity_name => $entity_ids) {
@@ -401,7 +403,25 @@ class CRM_Anonymiser_Worker {
     }
   }
 
-
+  /**
+   * Clear the custom data.
+   *
+   * @param $clearedEntities
+   *
+   * @return void
+   * @throws \CiviCRM_API3_Exception
+   */
+  protected function clearCustomData($clearedEntities) {
+    $sqlStatements = [];
+    foreach($clearedEntities as $entity => $ids) {
+      if (count($ids)) {
+        $customTables = $this->config->getCustomTablesForEntity($entity);
+        foreach ($customTables as $customTable) {
+          CRM_Core_DAO::executeQuery("DELETE FROM `" . $customTable . "` WHERE `entity_id` IN(".implode(",", $ids) . ");");
+        }
+      }
+    }
+  }
 
 
 
