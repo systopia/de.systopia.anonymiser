@@ -135,14 +135,12 @@ class CRM_Anonymiser_Worker {
     // first: load the contact
     $clearedEntities['Contact'][] = $contact_id;
     $contact = civicrm_api3('Contact', 'getsingle', array('id' => $contact_id));
-
     // then: get all fields to overwrite
     $fields = $this->config->getOverrideFields('Contact', $contact);
     $erase_query = array('id' => $contact_id);
     foreach ($fields as $field_name => $anon_type) {
       $erase_query[$field_name] = $this->config->generateAnonymousValue($field_name, $anon_type, $contact);
     }
-
     civicrm_api3('Contact', 'create', $erase_query);
 
     // TODO: anything else?
@@ -200,8 +198,9 @@ class CRM_Anonymiser_Worker {
    * delete an individual entity
    */
   protected function deleteEntity($entity_name, $entity_id)  {
-    if ($entity_name=='Log') {
+    if ($entity_name=='Log' || $entity_name=='EntityTag') {
       // exception for Log entries (no API)
+      // exception for EntityTag as those fail through the api
       $table_name = $this->config->getTableForEntity($entity_name);
       CRM_Core_DAO::executeQuery("DELETE FROM `$table_name` WHERE id = $entity_id");
     } else {
