@@ -178,6 +178,14 @@ function anonymiser_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
 }
 
 /**
+ * Implements hook_civicrm_container().
+ *
+ * @param Symfony\Component\DependencyInjection\ContainerBuilder $container
+ */
+function anonymiser_civicrm_container(Symfony\Component\DependencyInjection\ContainerBuilder $container) {
+  $container->addCompilerPass(new Civi\Anonymiser\CompilerPass());
+}
+
  * Implements hook_civicrm_navigationMenu().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_navigationMenu
@@ -194,5 +202,3 @@ function anonymiser_civicrm_navigationMenu(&$menu) {
   ]);
   _anonymiser_civix_navigationMenu($menu);
 }
-
-
