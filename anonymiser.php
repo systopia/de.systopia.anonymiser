@@ -183,7 +183,9 @@ function anonymiser_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
  * @param Symfony\Component\DependencyInjection\ContainerBuilder $container
  */
 function anonymiser_civicrm_container(Symfony\Component\DependencyInjection\ContainerBuilder $container) {
-  $container->addCompilerPass(new Civi\Anonymiser\CompilerPass());
+  if (class_exists('Civi\Anonymiser\CompilerPass')) {
+    $container->addCompilerPass(new Civi\Anonymiser\CompilerPass());
+  }
 }
 
 /**
