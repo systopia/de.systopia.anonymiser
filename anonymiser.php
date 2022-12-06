@@ -186,6 +186,7 @@ function anonymiser_civicrm_container(Symfony\Component\DependencyInjection\Cont
   $container->addCompilerPass(new Civi\Anonymiser\CompilerPass());
 }
 
+/**
  * Implements hook_civicrm_navigationMenu().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_navigationMenu
