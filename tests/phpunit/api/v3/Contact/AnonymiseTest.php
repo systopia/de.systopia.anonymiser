@@ -19,7 +19,7 @@ use Civi\Test\TransactionalInterface;
  *
  * @group headless
  */
-class api_v3_Contact_AnonymiseTest extends \PHPUnit_Framework_TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
+class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
   use Civi\Test\Api3TestTrait;
 
