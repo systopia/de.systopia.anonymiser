@@ -65,17 +65,17 @@ class CRM_Anonymiser_Worker {
     $this->deleteActivities($entity_name, $contact_id, $clearedEntities);
 
     // ANONYMISE memberships
-    if (!$this->config->deleteMemberships()) {
+    if ($this->isComponentEnabled('CiviMember') && !$this->config->deleteMemberships()) {
       $this->anonymiseMemberships($contact_id, $clearedEntities);
     }
 
     // ANONYMISE participants
-    if (!$this->config->deleteParticipations()) {
+    if ($this->isComponentEnabled('CiviEvent') && !$this->config->deleteParticipations()) {
       $this->anonymiseParticipants($contact_id, $clearedEntities);
     }
 
     // ANONYMISE contributions
-    if (!$this->config->deleteContributions()) {
+    if ($this->isComponentEnabled('CiviContribute') && !$this->config->deleteContributions()) {
       $this->anonymiseContributions($contact_id, $clearedEntities);
     }
 
@@ -436,5 +436,14 @@ class CRM_Anonymiser_Worker {
    */
   public function getLog() {
     return $this->log;
+  }
+
+    /**
+     * check if this Civi Component is enabled
+     * @param $component
+     * @return bool
+     */
+  private function isComponentEnabled($component) {
+      return in_array($component, Civi::settings()->get('enable_components'), TRUE);
   }
 }
