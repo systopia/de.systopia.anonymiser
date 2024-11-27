@@ -69,18 +69,33 @@ class CRM_Anonymiser_Worker {
     $this->deleteActivities($entity_name, $contact_id, $clearedEntities);
 
     // ANONYMISE memberships
-    if ($this->isComponentEnabled('CiviMember') && !$this->config->deleteMemberships()) {
-      $this->anonymiseMemberships($contact_id, $clearedEntities);
+    if (!$this->config->deleteMemberships()){
+      if ($this->isComponentEnabled('CiviMember')){
+        $this->anonymiseMemberships($contact_id, $clearedEntities);
+      }else{
+        $this->log(ts("Warning: Can not anonymize potentiall Membership entries because Component is disabled."));
+      }
     }
+
 
     // ANONYMISE participants
-    if ($this->isComponentEnabled('CiviEvent') && !$this->config->deleteParticipations()) {
-      $this->anonymiseParticipants($contact_id, $clearedEntities);
+    if (!$this->config->deleteParticipations()) {
+      if ($this->isComponentEnabled('CiviEvent')){
+        $this->anonymiseParticipants($contact_id, $clearedEntities);
+      }else{
+        $this->log(ts("Warning: Can not anonymize potentiall Participant entries because Component is disabled."));
+      }
     }
 
+
+
     // ANONYMISE contributions
-    if ($this->isComponentEnabled('CiviContribute') && !$this->config->deleteContributions()) {
-      $this->anonymiseContributions($contact_id, $clearedEntities);
+    if (!$this->config->deleteContributions()) {
+      if ($this->isComponentEnabled('CiviContribute')) {
+        $this->anonymiseContributions($contact_id, $clearedEntities);
+      }else{
+        $this->log(ts("Warning: Can not anonymize potentiall Contribution entries because Component is disabled."));
+      }
     }
 
     // THEN: clean out the basic data
