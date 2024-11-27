@@ -58,25 +58,44 @@ class CRM_Anonymiser_Worker {
     // delete entities, that cannot be (sensibly) anonymised
     $entities_to_delete = $this->config->getEntitiesToDelete();
     foreach ($entities_to_delete as $entity_name) {
-      $this->deleteRelatedEntities($entity_name, $contact_id, $clearedEntities);
+      if ($this->isEntityComponentEnabled($entity_name)) {
+          $this->deleteRelatedEntities($entity_name, $contact_id, $clearedEntities);
+      }else{
+          $this->log(ts("Warning: Can not delete potentiall %1 entries because Component is disabled.",array(1 => $entity_name, 'domain' => 'de.systopia.anonymiser')));
+      }
     }
 
     // delete ACTIVITIES
     $this->deleteActivities($entity_name, $contact_id, $clearedEntities);
 
     // ANONYMISE memberships
-    if (!$this->config->deleteMemberships()) {
-      $this->anonymiseMemberships($contact_id, $clearedEntities);
+    if (!$this->config->deleteMemberships()){
+      if ($this->isComponentEnabled('CiviMember')){
+        $this->anonymiseMemberships($contact_id, $clearedEntities);
+      }else{
+        $this->log(ts("Warning: Can not anonymize potentiall Membership entries because Component is disabled."));
+      }
     }
+
 
     // ANONYMISE participants
     if (!$this->config->deleteParticipations()) {
-      $this->anonymiseParticipants($contact_id, $clearedEntities);
+      if ($this->isComponentEnabled('CiviEvent')){
+        $this->anonymiseParticipants($contact_id, $clearedEntities);
+      }else{
+        $this->log(ts("Warning: Can not anonymize potentiall Participant entries because Component is disabled."));
+      }
     }
+
+
 
     // ANONYMISE contributions
     if (!$this->config->deleteContributions()) {
-      $this->anonymiseContributions($contact_id, $clearedEntities);
+      if ($this->isComponentEnabled('CiviContribute')) {
+        $this->anonymiseContributions($contact_id, $clearedEntities);
+      }else{
+        $this->log(ts("Warning: Can not anonymize potentiall Contribution entries because Component is disabled."));
+      }
     }
 
     // THEN: clean out the basic data
@@ -436,5 +455,36 @@ class CRM_Anonymiser_Worker {
    */
   public function getLog() {
     return $this->log;
+  }
+
+    /**
+     * check if the component for this entity is enabled
+     * currently only checks Membership, Participant, Contribution, ContributionRcur
+     * returns true if component is enabled or not checked
+     * @param $entity
+     * @return bool
+     */
+  private function isEntityComponentEnabled($entity){
+    if ($entity == 'Membership'):
+        return $this->isComponentEnabled('CiviMember');
+    elseif ($entity == 'Participant'):
+        return $this->isComponentEnabled('CiviEvent');
+    elseif ($entity == 'Contribution'):
+        return $this->isComponentEnabled('CiviContribute');
+    elseif ($entity == 'ContributionRecur'):
+        return $this->isComponentEnabled('CiviContribute');
+    else:
+        // assume this component is enabled if it is not explicitly checked
+        return true;
+    endif;
+  }
+
+    /**
+     * check if this Civi Component is enabled
+     * @param $component
+     * @return bool
+     */
+  private function isComponentEnabled($component) {
+      return in_array($component, Civi::settings()->get('enable_components'), TRUE);
   }
 }
