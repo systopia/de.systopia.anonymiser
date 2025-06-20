@@ -95,29 +95,6 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task
     $runner->runAllViaWeb();
   }
 
-  /**
-   * Get a list of the available/allowed sender email addresses
-   */
-  private function getSenderOptions(): array
-  {
-    $list  = [];
-    $query = civicrm_api3(
-        'OptionValue',
-        'get',
-        [
-            'option_group_id' => 'from_email_address',
-            'option.limit'    => 0,
-            'return'          => 'value,label',
-        ]
-    );
-
-    foreach ($query['values'] as $sender) {
-      $list[$sender['value']] = $sender['label'];
-    }
-
-    return $list;
-  }
-
   private function getMessageTemplates(): array
   {
     $list  = [];
