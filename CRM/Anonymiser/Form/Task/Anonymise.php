@@ -19,8 +19,9 @@ use CRM_Anonymiser_ExtensionUtil as E;
 
 class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task {
   /**
- * @var int number of contacts to be anonymised per queue item */
-  const BATCH_SIZE = 10;
+   * @var int number of contacts to be anonymised per queue item
+   */
+  private const BATCH_SIZE = 10;
 
   public function buildQuickForm() {
     parent::buildQuickForm();
@@ -83,7 +84,10 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task {
 
     // create the link to the download screen
     $return_link = base64_encode(CRM_Core_Session::singleton()->readUserContext());
-    $log_link = CRM_Utils_System::url('civicrm/contact/anonymise/log', "log_file={$log_file}&return_url={$return_link}");
+    $log_link = CRM_Utils_System::url(
+      'civicrm/contact/anonymise/log',
+      "log_file={$log_file}&return_url={$return_link}"
+    );
     $runner = new CRM_Queue_Runner(
         [
           'title'     => E::ts('Anonymising %1 contacts...', [1 => $contact_count]),

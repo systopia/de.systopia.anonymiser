@@ -21,7 +21,10 @@ use Civi\Test\TransactionalInterface;
  *
  * @group headless
  */
-class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
+class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase implements
+    HeadlessInterface,
+    HookInterface,
+    TransactionalInterface {
 
   use Civi\Test\Api3TestTrait;
 
@@ -93,15 +96,16 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
       ],
     ]);
     $result = $this->callApiSuccess('Contact', 'anonymise', ['contact_id' => $contact['id']]);
-    $this->assertTrue(in_array('Removed entries for 1 LineItem(s) from logging table \'log_civicrm_line_item\'.', $result['values']));
+    $this->assertTrue(in_array(
+      'Removed entries for 1 LineItem(s) from logging table \'log_civicrm_line_item\'.',
+      $result['values']
+    ));
 
     $this->callApiSuccess('Setting', 'create', ['logging' => 0]);
   }
 
   /**
    * Implements hook_alterLogTables().
-   *
-   * @param array $logTableSpec
    */
   public function hook_civicrm_alterLogTables(&$logTableSpec) {
     foreach (array_keys($logTableSpec) as $tableName) {

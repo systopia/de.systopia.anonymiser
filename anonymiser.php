@@ -15,7 +15,9 @@
 
 declare(strict_types = 1);
 
+// phpcs:disable PSR1.Files.SideEffects.FoundWithSymbols
 require_once 'anonymiser.civix.php';
+// phpcs:enable PSR1.Files.SideEffects.FoundWithSymbols
 
 use CRM_Anonymiser_ExtensionUtil as E;
 
@@ -85,8 +87,6 @@ function anonymiser_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
 
 /**
  * Implements hook_civicrm_container().
- *
- * @param Symfony\Component\DependencyInjection\ContainerBuilder $container
  */
 function anonymiser_civicrm_container(Symfony\Component\DependencyInjection\ContainerBuilder $container) {
   if (class_exists('Civi\Anonymiser\CompilerPass')) {

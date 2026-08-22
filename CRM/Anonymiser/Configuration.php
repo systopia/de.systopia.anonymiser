@@ -162,7 +162,6 @@ class CRM_Anonymiser_Configuration {
         'trxn_id'                => 'null',
         'invoice_id'             => 'null',
         'check_number'           => 'null',
-        //"cancel_reason"          => 'null',
         'credit_note_id'         => 'null',
       ];
 
@@ -178,7 +177,6 @@ class CRM_Anonymiser_Configuration {
       $fields = [
         'trxn_id'                => 'null',
         'check_number'           => 'null',
-        // "trxn_result_code"       => 'null',
       ];
 
     }
@@ -194,6 +192,7 @@ class CRM_Anonymiser_Configuration {
    * generate an anonymous value to fill the verious fields with.
    * this allows an override based on the field name.
    */
+  // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
   public function generateAnonymousValue($field_name, $type = 'string', $entity = []) {
     switch ($type) {
       case 'anon_name':
@@ -517,7 +516,8 @@ class CRM_Anonymiser_Configuration {
     $affected_log_tables = $this->getAffectedLogTables("'");
     $affected_log_table_list = implode(',', $affected_log_tables);
 
-    $log_tables_present = "SELECT COUNT(table_name) FROM information_schema.tables WHERE table_schema = '{$this->database_name}' AND table_name IN ($affected_log_table_list);";
+    $log_tables_present = 'SELECT COUNT(table_name) FROM information_schema.tables '
+      . "WHERE table_schema = '{$this->database_name}' AND table_name IN ($affected_log_table_list);";
     return CRM_Core_DAO::singleValueQuery($log_tables_present);
   }
 
@@ -534,7 +534,9 @@ class CRM_Anonymiser_Configuration {
       $affected_log_table_list = implode(',', $affected_log_tables);
 
       // get the tables
-      $archive_check = "SELECT COUNT(table_name) FROM information_schema.tables WHERE table_schema = '{$this->database_name}' AND table_name IN ($affected_log_table_list) AND engine = 'ARCHIVE';";
+      $archive_check = 'SELECT COUNT(table_name) FROM information_schema.tables '
+        . "WHERE table_schema = '{$this->database_name}' AND table_name IN ($affected_log_table_list) "
+        . "AND engine = 'ARCHIVE';";
       $archives_present = CRM_Core_DAO::singleValueQuery($archive_check);
       if ($archives_present) {
         throw new Exception('TODO: ARCHIVE TABLES PRESENT!');
@@ -553,7 +555,9 @@ class CRM_Anonymiser_Configuration {
    * @throws \CRM_Core_Exception
    */
   public function getCustomTablesForEntity($entity) {
-    if (!isset(\Civi::$statics[E::LONG_NAME]['custom_tables'][$entity]) && !is_array(\Civi::$statics[E::LONG_NAME]['custom_tables'][$entity])) {
+    if (!isset(\Civi::$statics[E::LONG_NAME]['custom_tables'][$entity])
+      && !is_array(\Civi::$statics[E::LONG_NAME]['custom_tables'][$entity])
+    ) {
       \Civi::$statics[E::LONG_NAME]['custom_tables'][$entity] = [];
       $extends = [$entity];
       switch ($entity) {

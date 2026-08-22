@@ -49,6 +49,7 @@ class CRM_Anonymiser_Worker {
    *
    * @param $contact_id int   ID of the contact
    */
+  // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
   public function anonymiseContact($contact_id) {
     $contact_id = (int) $contact_id;
     $clearedEntities = [];
@@ -66,7 +67,10 @@ class CRM_Anonymiser_Worker {
         $this->deleteRelatedEntities($entity_name, $contact_id, $clearedEntities);
       }
       else {
-        $this->log(ts('Warning: Can not delete potentiall %1 entries because Component is disabled.', [1 => $entity_name, 'domain' => 'de.systopia.anonymiser']));
+        $this->log(ts('Warning: Can not delete potentiall %1 entries because Component is disabled.', [
+          1 => $entity_name,
+          'domain' => 'de.systopia.anonymiser',
+        ]));
       }
     }
 
@@ -123,7 +127,11 @@ class CRM_Anonymiser_Worker {
           $counter += 1;
         }
       }
-      $this->log(ts('%1 attached %2(s) deleted.', [1 => $counter, 2 => $attachedEntity, 'domain' => 'de.systopia.anonymiser']));
+      $this->log(ts('%1 attached %2(s) deleted.', [
+        1 => $counter,
+        2 => $attachedEntity,
+        'domain' => 'de.systopia.anonymiser',
+      ]));
     }
 
     $this->clearCustomData($clearedEntities);
@@ -137,7 +145,12 @@ class CRM_Anonymiser_Worker {
           $id_list        = implode(',', $entity_ids);
           $query = "DELETE FROM `$log_table_name` WHERE id IN ($id_list);";
           CRM_Core_DAO::executeQuery($query);
-          $this->log(ts("Removed entries for %1 %2(s) from logging table '%3'.", [1 => count($entity_ids), 2 => $entity_name, 3 => $log_table_name, 'domain' => 'de.systopia.anonymiser']));
+          $this->log(ts("Removed entries for %1 %2(s) from logging table '%3'.", [
+            1 => count($entity_ids),
+            2 => $entity_name,
+            3 => $log_table_name,
+            'domain' => 'de.systopia.anonymiser',
+          ]));
         }
       }
 
@@ -186,7 +199,11 @@ class CRM_Anonymiser_Worker {
       $result = CRM_Core_DAO::executeQuery($query);
       $row_count = $result->affectedRows();
       if ($row_count) {
-        $this->log(ts("Removed %1 additional log entries referencing this contact from logging table '%2'.", [1 => $row_count, 2 => $log_table_name, 'domain' => 'de.systopia.anonymiser']));
+        $this->log(ts("Removed %1 additional log entries referencing this contact from logging table '%2'.", [
+          1 => $row_count,
+          2 => $log_table_name,
+          'domain' => 'de.systopia.anonymiser',
+        ]));
       }
     }
   }
@@ -249,14 +266,15 @@ class CRM_Anonymiser_Worker {
       $clearedEntities['ActivityContact'][] = $identify_connections->id;
     }
 
-    // THEN: find activities with no more that 2 contacts involved. These will be deleted as they are assumed to be 'primarily about'
-    // the contact being anonymised (note there is some risk when deleting admin contacts or contacts who might register on
-    // behalf of an organisation.
-    $identify_activities_sql = "SELECT civicrm_activity.id AS activity_identifier, parent_id
-                                FROM civicrm_activity
-                                LEFT JOIN civicrm_activity_contact ON civicrm_activity.id = civicrm_activity_contact.activity_id
-                                WHERE contact_id = $contact_id
-                                  AND 2 >= (SELECT COUNT(DISTINCT(contact_id)) FROM civicrm_activity_contact WHERE civicrm_activity.id = activity_id );";
+    // THEN: find activities with no more that 2 contacts involved. These will be deleted as they are
+    // assumed to be 'primarily about' the contact being anonymised (note there is some risk when
+    // deleting admin contacts or contacts who might register on behalf of an organisation.
+    $identify_activities_sql = 'SELECT civicrm_activity.id AS activity_identifier, parent_id'
+      . ' FROM civicrm_activity'
+      . ' LEFT JOIN civicrm_activity_contact ON civicrm_activity.id = civicrm_activity_contact.activity_id'
+      . " WHERE contact_id = $contact_id"
+      . ' AND 2 >= (SELECT COUNT(DISTINCT(contact_id)) FROM civicrm_activity_contact'
+      . ' WHERE civicrm_activity.id = activity_id);';
     $identify_activities = CRM_Core_DAO::executeQuery($identify_activities_sql);
     while ($identify_activities->fetch()) {
       $activity_id = $identify_activities->activity_identifier;
@@ -278,7 +296,11 @@ class CRM_Anonymiser_Worker {
       CRM_Core_DAO::executeQuery("DELETE FROM civicrm_activity_contact WHERE id IN ($entity_list)");
     }
 
-    $this->log(ts('%1 activities, and %2 associations with activities deleted.', [1 => $deleted_activities, 2 => $deleted_connections, 'domain' => 'de.systopia.anonymiser']));
+    $this->log(ts('%1 activities, and %2 associations with activities deleted.', [
+      1 => $deleted_activities,
+      2 => $deleted_connections,
+      'domain' => 'de.systopia.anonymiser',
+    ]));
   }
 
   /**
@@ -301,7 +323,10 @@ class CRM_Anonymiser_Worker {
         $this->log(ts('Anonymised Membership [%1].', [1 => $membership['id'], 'domain' => 'de.systopia.anonymiser']));
       }
       else {
-        $this->log(ts('Membership [%1] did not need anonymisation.', [1 => $membership['id'], 'domain' => 'de.systopia.anonymiser']));
+        $this->log(ts('Membership [%1] did not need anonymisation.', [
+          1 => $membership['id'],
+          'domain' => 'de.systopia.anonymiser',
+        ]));
       }
     }
 
@@ -329,7 +354,10 @@ class CRM_Anonymiser_Worker {
         $this->log(ts('Anonymised Participant [%1].', [1 => $participant['id'], 'domain' => 'de.systopia.anonymiser']));
       }
       else {
-        $this->log(ts('Participant [%1] did not need anonymisation.', [1 => $participant['id'], 'domain' => 'de.systopia.anonymiser']));
+        $this->log(ts('Participant [%1] did not need anonymisation.', [
+          1 => $participant['id'],
+          'domain' => 'de.systopia.anonymiser',
+        ]));
       }
     }
 
@@ -342,9 +370,14 @@ class CRM_Anonymiser_Worker {
    * anonymises the contact's contribution information,
    * without deleting statistically relevant data
    */
+  // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
   protected function anonymiseContributions($contact_id, &$clearedEntities) {
     $contributions      = civicrm_api3('Contribution', 'get', ['contact_id' => $contact_id, 'option.limit' => 99999]);
-    $test_contributions = civicrm_api3('Contribution', 'get', ['contact_id' => $contact_id, 'option.limit' => 99999, 'is_test' => 1]);
+    $test_contributions = civicrm_api3('Contribution', 'get', [
+      'contact_id' => $contact_id,
+      'option.limit' => 99999,
+      'is_test' => 1,
+    ]);
     $all_contributions  = array_merge($contributions['values'], $test_contributions['values']);
 
     $contribution_counter   = 0;
@@ -367,7 +400,10 @@ class CRM_Anonymiser_Worker {
       }
 
       // now find and anonymise the LineItems
-      $line_items = civicrm_api3('LineItem', 'get', ['contribution_id' => ['IN' => $clearedEntities['Contribution']], ['options' => ['limit' => 0]]]);
+      $line_items = civicrm_api3('LineItem', 'get', [
+        'contribution_id' => ['IN' => $clearedEntities['Contribution']],
+        'options' => ['limit' => 0],
+      ]);
       foreach ($line_items['values'] as $line_item) {
         $clearedEntities['LineItem'][] = $line_item['id'];
         $fields = $this->config->getOverrideFields('LineItem', $line_item);
@@ -402,28 +438,48 @@ class CRM_Anonymiser_Worker {
         }
       }
     }
-    $this->log(ts('Anonymised %1 contributions, %2 associated line items and %3 associated financial transactions.', [1 => $contribution_counter, $line_item_counter, $financial_trxn_counter, 'domain' => 'de.systopia.anonymiser']));
+    $this->log(ts('Anonymised %1 contributions, %2 associated line items and %3 associated financial transactions.', [
+      1 => $contribution_counter,
+      2 => $line_item_counter,
+      3 => $financial_trxn_counter,
+      'domain' => 'de.systopia.anonymiser',
+    ]));
 
     // finally, anonymise recurring contributions
-    $recurring_contributions = civicrm_api3('ContributionRecur', 'get', ['contact_id' => $contact_id, 'option.limit' => 99999]);
+    $recurring_contributions = civicrm_api3('ContributionRecur', 'get', [
+      'contact_id' => $contact_id,
+      'option.limit' => 99999,
+    ]);
     foreach ($recurring_contributions['values'] as $recurring_contribution) {
       $clearedEntities['ContributionRecur'][] = $recurring_contribution['id'];
       $fields = $this->config->getOverrideFields('ContributionRecur', $recurring_contribution);
       if (!empty($fields)) {
         $update_query = ['id' => $recurring_contribution['id']];
         foreach ($fields as $field_name => $type) {
-          $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $recurring_contribution);
+          $update_query[$field_name] = $this->config->generateAnonymousValue(
+            $field_name,
+            $type,
+            $recurring_contribution
+          );
         }
         civicrm_api3('ContributionRecur', 'create', $update_query);
-        $this->log(ts('Anonymised RecurringContribution [%1].', [1 => $recurring_contribution['id'], 'domain' => 'de.systopia.anonymiser']));
+        $this->log(ts('Anonymised RecurringContribution [%1].', [
+          1 => $recurring_contribution['id'],
+          'domain' => 'de.systopia.anonymiser',
+        ]));
       }
       else {
-        $this->log(ts('RecurringContribution [%1] did not need anonymisation.', [1 => $recurring_contribution['id'], 'domain' => 'de.systopia.anonymiser']));
+        $this->log(ts('RecurringContribution [%1] did not need anonymisation.', [
+          1 => $recurring_contribution['id'],
+          'domain' => 'de.systopia.anonymiser',
+        ]));
       }
     }
 
     if ($recurring_contributions['count'] == 0) {
-      $this->log(ts('0 RecurringContribution entities found for anonymisation.', ['domain' => 'de.systopia.anonymiser']));
+      $this->log(ts('0 RecurringContribution entities found for anonymisation.', [
+        'domain' => 'de.systopia.anonymiser',
+      ]));
     }
   }
 
@@ -441,7 +497,9 @@ class CRM_Anonymiser_Worker {
       if (count($ids)) {
         $customTables = $this->config->getCustomTablesForEntity($entity);
         foreach ($customTables as $customTable) {
-          CRM_Core_DAO::executeQuery('DELETE FROM `' . $customTable . '` WHERE `entity_id` IN(' . implode(',', $ids) . ');');
+          CRM_Core_DAO::executeQuery(
+            'DELETE FROM `' . $customTable . '` WHERE `entity_id` IN(' . implode(',', $ids) . ');'
+          );
         }
       }
     }
