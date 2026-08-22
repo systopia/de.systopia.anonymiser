@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+declare(strict_types = 1);
+
 namespace Civi\Anonymiser\ActionProvider\Actions;
 
 use Civi\ActionProvider\Action\AbstractAction;

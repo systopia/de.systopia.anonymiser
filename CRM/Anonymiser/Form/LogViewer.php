@@ -13,6 +13,8 @@
 | written permission from the original author(s).        |
 +-------------------------------------------------------*/
 
+declare(strict_types = 1);
+
 use CRM_Anonymiser_ExtensionUtil as E;
 
 /**
@@ -28,7 +30,7 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
    * Verify that this is our log file
    *
    * @throws Exception
-   *   if there's something wrong with the log file
+   *   If there's something wrong with the log file.
    */
   protected function verifyLogFile() {
     if (!is_readable($this->log_file)) {

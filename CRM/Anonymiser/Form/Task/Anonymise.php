@@ -13,6 +13,8 @@
 | written permission from the original author(s).        |
 +-------------------------------------------------------*/
 
+declare(strict_types = 1);
+
 use CRM_Anonymiser_ExtensionUtil as E;
 
 class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task {

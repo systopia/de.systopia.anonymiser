@@ -13,6 +13,8 @@
 | written permission from the original author(s).        |
 +-------------------------------------------------------*/
 
+declare(strict_types = 1);
+
 require_once 'CRM/Core/Page.php';
 
 class CRM_Anonymiser_Page_Anonymise extends CRM_Core_Page {

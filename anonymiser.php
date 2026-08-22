@@ -13,6 +13,8 @@
 | written permission from the original author(s).        |
 +-------------------------------------------------------*/
 
+declare(strict_types = 1);
+
 require_once 'anonymiser.civix.php';
 
 use CRM_Anonymiser_ExtensionUtil as E;
