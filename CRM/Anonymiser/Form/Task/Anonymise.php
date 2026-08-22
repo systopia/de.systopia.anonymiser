@@ -54,7 +54,7 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task {
     // now create an item for each
     foreach ($this->_contactIds as $contact_id) {
       $current_batch_contact_ids[] = (int) $contact_id;
-      if (count($current_batch_contact_ids) == self::BATCH_SIZE) {
+      if (count($current_batch_contact_ids) === self::BATCH_SIZE) {
         $queue->createItem(
             new CRM_Anonymiser_AnonymiserJob(
                 $current_batch_contact_ids,

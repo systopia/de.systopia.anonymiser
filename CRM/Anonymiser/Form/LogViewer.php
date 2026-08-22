@@ -87,7 +87,7 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
     }
     elseif (isset($vars['_qf_LogViewer_done'])) {
       // go back
-      CRM_Utils_System::redirect(base64_decode($this->return_url));
+      CRM_Utils_System::redirect(base64_decode($this->return_url, TRUE));
     }
 
     parent::postProcess();

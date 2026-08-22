@@ -81,7 +81,7 @@ class CRM_Anonymiser_Configuration {
    * looks into the settings, if certain key should be deleted/reset
    */
   public function shouldDeleteAttribute($key) {
-    if (\Civi::settings()->hasExplict('anonymiser_' . $key)) {
+    if (\Civi::settings()->hasExplicit('anonymiser_' . $key)) {
       return \Civi::settings()->get('anonymiser_' . $key);
     }
     return TRUE;
@@ -96,7 +96,7 @@ class CRM_Anonymiser_Configuration {
    * @return array field_name => field_type map
    */
   public function getOverrideFields($entity_name, $entity = []) {
-    if ($entity_name == 'Contact') {
+    if ($entity_name === 'Contact') {
       $fields = [
         'legal_identifier'       => 'null',
         'external_identifier'    => 'null',
@@ -140,7 +140,7 @@ class CRM_Anonymiser_Configuration {
       }
 
     }
-    elseif ($entity_name == 'Membership') {
+    elseif ($entity_name === 'Membership') {
       $fields = [
         'join_date'              => 'year_floor',
         'start_date'             => 'year_floor',
@@ -149,14 +149,14 @@ class CRM_Anonymiser_Configuration {
       ];
 
     }
-    elseif ($entity_name == 'Participant') {
+    elseif ($entity_name === 'Participant') {
       $fields = [
         'register_date'          => 'month_floor',
         'source'                 => 'null',
       ];
 
     }
-    elseif ($entity_name == 'Contribution') {
+    elseif ($entity_name === 'Contribution') {
       $fields = [
         'source'                 => 'null',
         'trxn_id'                => 'null',
@@ -166,14 +166,14 @@ class CRM_Anonymiser_Configuration {
       ];
 
     }
-    elseif ($entity_name == 'ContributionRecur') {
+    elseif ($entity_name === 'ContributionRecur') {
       $fields = [
         'trxn_id'                => 'null',
         'invoice_id'             => 'null',
       ];
 
     }
-    elseif ($entity_name == 'FinancialTrxn') {
+    elseif ($entity_name === 'FinancialTrxn') {
       $fields = [
         'trxn_id'                => 'null',
         'check_number'           => 'null',
@@ -216,13 +216,13 @@ class CRM_Anonymiser_Configuration {
       case 'month_floor':
         if (!empty($entity[$field_name])) {
           $date = strtotime($entity[$field_name]);
-          if ($type == 'year_floor') {
+          if ($type === 'year_floor') {
             return date('Y0101000000', $date);
           }
-          elseif ($type == 'year_ceil') {
+          elseif ($type === 'year_ceil') {
             return date('Y1231000000', $date);
           }
-          elseif ($type == 'month_floor') {
+          elseif ($type === 'month_floor') {
             return date('Ym01000000', $date);
           }
         }
@@ -254,12 +254,12 @@ class CRM_Anonymiser_Configuration {
     // TODO: exceptions?
 
     // first: strip the 'log_' if present
-    if (substr($table_name, 0, 4) == 'log_') {
+    if (substr($table_name, 0, 4) === 'log_') {
       $table_name = substr($table_name, 4);
     }
 
     // then: strip the 'civicrm_' if present
-    if (substr($table_name, 0, 8) == 'civicrm_') {
+    if (substr($table_name, 0, 8) === 'civicrm_') {
       $table_name = substr($table_name, 8);
     }
 
@@ -339,7 +339,7 @@ class CRM_Anonymiser_Configuration {
   public function getIdentifiers($entity_name, $contact_id) {
     // notes have both, entity_table and contact_id (creator)
     // NOTES have both:
-    if ($entity_name == 'Note') {
+    if ($entity_name === 'Note') {
       return [
         'api' => [[
           'entity_table' => 'civicrm_contact',
@@ -352,7 +352,7 @@ class CRM_Anonymiser_Configuration {
     }
 
     // Contact has the ID right there
-    if ($entity_name == 'Contact') {
+    if ($entity_name === 'Contact') {
       return [
         'api' => [[['id' => $contact_id]]],
         'sql' => ["(`id` = $contact_id)"],
@@ -360,7 +360,7 @@ class CRM_Anonymiser_Configuration {
     }
 
     // Activities are exceptional
-    if ($entity_name == 'Activity') {
+    if ($entity_name === 'Activity') {
       return [
         'api' => [[['source_contact_id' => $contact_id],
                                           ['target_contact_id' => $contact_id],
@@ -372,7 +372,7 @@ class CRM_Anonymiser_Configuration {
     }
 
     // Files are exceptional
-    if ($entity_name == 'File') {
+    if ($entity_name === 'File') {
       // TODO: API??
       return [
         'api' => [],
@@ -382,7 +382,7 @@ class CRM_Anonymiser_Configuration {
     }
 
     // Relationships are exceptional
-    if ($entity_name == 'Relationship') {
+    if ($entity_name === 'Relationship') {
       return [
         'api' => [[['contact_id_a' => $contact_id],
                                           ['contact_id_b' => $contact_id],
@@ -392,7 +392,7 @@ class CRM_Anonymiser_Configuration {
       ];
     }
 
-    if (in_array($entity_name, ['EntityTag', 'File', 'Log'])) {
+    if (in_array($entity_name, ['EntityTag', 'File', 'Log'], TRUE)) {
       // This is an entity_relation scheme
       return [
         'api' => [[
@@ -426,11 +426,11 @@ class CRM_Anonymiser_Configuration {
       }
     }
 
-    if ($entity_name == 'File' || $entity_name == 'FinancialTrxn') {
+    if ($entity_name === 'File' || $entity_name === 'FinancialTrxn') {
       // File and FinancialTrxn is an exception:
       $entity_file_table = $this->getTableForEntity('Entity' . $entity_name);
       $selector = implode(' OR ', $clauses);
-      $id_field = ($entity_name == 'File') ? 'file_id' : 'financial_trxn_id';
+      $id_field = ($entity_name === 'File') ? 'file_id' : 'financial_trxn_id';
       return "id IN (SELECT $id_field AS id FROM `$entity_file_table` WHERE $selector)";
     }
     else {
@@ -450,25 +450,25 @@ class CRM_Anonymiser_Configuration {
     $entities = $this->getEntitiesToDelete();
 
     // add the ones that were just anonymised
-    if (!in_array('Contact', $entities)) {
+    if (!in_array('Contact', $entities, TRUE)) {
       $entities[] = 'Contact';
     }
-    if (!in_array('GroupContact', $entities)) {
+    if (!in_array('GroupContact', $entities, TRUE)) {
       $entities[] = 'GroupContact';
     }
-    if (!in_array('EntityTag', $entities)) {
+    if (!in_array('EntityTag', $entities, TRUE)) {
       $entities[] = 'EntityTag';
     }
-    if (!in_array('Membership', $entities)) {
+    if (!in_array('Membership', $entities, TRUE)) {
       $entities[] = 'Membership';
     }
-    if (!in_array('Participant', $entities)) {
+    if (!in_array('Participant', $entities, TRUE)) {
       $entities[] = 'Participant';
     }
-    if (!in_array('Contribution', $entities)) {
+    if (!in_array('Contribution', $entities, TRUE)) {
       $entities[] = 'Contribution';
     }
-    if (!in_array('ContributionRecur', $entities)) {
+    if (!in_array('ContributionRecur', $entities, TRUE)) {
       $entities[] = 'ContributionRecur';
     }
 

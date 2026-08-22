@@ -121,7 +121,7 @@ class CRM_Anonymiser_Worker {
       $query = CRM_Core_DAO::executeQuery("SELECT id FROM $entity_table WHERE $where_clause");
       while ($query->fetch()) {
         // delete right away, if not in the list already
-        if (empty($clearedEntities[$attachedEntity]) || !in_array($query->id, $clearedEntities[$attachedEntity])) {
+        if (empty($clearedEntities[$attachedEntity]) || !in_array($query->id, $clearedEntities[$attachedEntity], TRUE)) {
           $this->deleteEntity($attachedEntity, $query->id);
           $clearedEntities[$attachedEntity][] = $query->id;
           $counter += 1;
@@ -139,7 +139,7 @@ class CRM_Anonymiser_Worker {
     // FINALLY clean FULL LOGGING tables
     if ($this->config->deleteLogs()) {
       foreach ($clearedEntities as $entity_name => $entity_ids) {
-        if (!empty($entity_ids) && $entity_name != 'Log') {
+        if (!empty($entity_ids) && $entity_name !== 'Log') {
           $table_name     = $this->config->getTableForEntity($entity_name);
           $log_table_name = $this->config->getLogTableForTable($table_name);
           $id_list        = implode(',', $entity_ids);
@@ -238,7 +238,7 @@ class CRM_Anonymiser_Worker {
    * delete an individual entity
    */
   protected function deleteEntity($entity_name, $entity_id) {
-    if ($entity_name == 'Log' || $entity_name == 'EntityTag') {
+    if ($entity_name === 'Log' || $entity_name === 'EntityTag') {
       // exception for Log entries (no API)
       // exception for EntityTag as those fail through the api
       $table_name = $this->config->getTableForEntity($entity_name);
@@ -330,7 +330,7 @@ class CRM_Anonymiser_Worker {
       }
     }
 
-    if ($memberships['count'] == 0) {
+    if ($memberships['count'] === 0) {
       $this->log(ts('0 Membership entities found for anonymisation.', ['domain' => 'de.systopia.anonymiser']));
     }
   }
@@ -361,7 +361,7 @@ class CRM_Anonymiser_Worker {
       }
     }
 
-    if ($participants['count'] == 0) {
+    if ($participants['count'] === 0) {
       $this->log(ts('0 Participant entities found for anonymisation.', ['domain' => 'de.systopia.anonymiser']));
     }
   }
@@ -476,7 +476,7 @@ class CRM_Anonymiser_Worker {
       }
     }
 
-    if ($recurring_contributions['count'] == 0) {
+    if ($recurring_contributions['count'] === 0) {
       $this->log(ts('0 RecurringContribution entities found for anonymisation.', [
         'domain' => 'de.systopia.anonymiser',
       ]));
@@ -527,13 +527,13 @@ class CRM_Anonymiser_Worker {
    * @return bool
    */
   private function isEntityComponentEnabled($entity) {
-    if ($entity == 'Membership') :
+    if ($entity === 'Membership') :
       return $this->isComponentEnabled('CiviMember');
-    elseif ($entity == 'Participant') :
+    elseif ($entity === 'Participant') :
       return $this->isComponentEnabled('CiviEvent');
-    elseif ($entity == 'Contribution') :
+    elseif ($entity === 'Contribution') :
       return $this->isComponentEnabled('CiviContribute');
-    elseif ($entity == 'ContributionRecur') :
+    elseif ($entity === 'ContributionRecur') :
       return $this->isComponentEnabled('CiviContribute');
     else :
       // assume this component is enabled if it is not explicitly checked

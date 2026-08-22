@@ -48,33 +48,33 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
    * Example: Test that a version is returned.
    */
   public function testAnonymiseContactWithChildActivity() {
-    $contact = $this->callApiSuccess('Contact', 'create', [
+    $contact = $this->callAPISuccess('Contact', 'create', [
       'first_name' => 'Roger',
       'last_name' => 'Rabbit',
       'contact_type' => 'Individual',
     ]);
-    $parentActivity = $this->callApiSuccess('Activity', 'create', [
+    $parentActivity = $this->callAPISuccess('Activity', 'create', [
       'source_contact_id' => $contact['id'],
       'target_contact_id' => $contact['id'],
       'activity_type_id' => 'Meeting',
       'subject' => 'Eat Carrot',
     ]);
-    $this->callApiSuccess('Activity', 'create', [
+    $this->callAPISuccess('Activity', 'create', [
       'source_contact_id' => $contact['id'],
       'activity_type_id' => 'Meeting',
       'subject' => 'Nibble the chewy bits first',
       'parent_id' => $parentActivity['id'],
     ]);
-    $this->callApiSuccess('Contact', 'anonymise', ['contact_id' => $contact['id']]);
+    $this->callAPISuccess('Contact', 'anonymise', ['contact_id' => $contact['id']]);
   }
 
   /**
    * Example: Test that a version is returned.
    */
   public function testAnonmyseContactWithLogging() {
-    $this->callApiSuccess('Setting', 'create', ['logging' => 0]);
-    $this->callApiSuccess('Setting', 'create', ['logging' => 1]);
-    $placebo = $this->callApiSuccess('Contact', 'create', [
+    $this->callAPISuccess('Setting', 'create', ['logging' => 0]);
+    $this->callAPISuccess('Setting', 'create', ['logging' => 1]);
+    $placebo = $this->callAPISuccess('Contact', 'create', [
       'first_name' => 'Roger',
       'last_name' => 'Rabbit',
       'contact_type' => 'Individual',
@@ -85,7 +85,7 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
       ],
     ]);
 
-    $contact = $this->callApiSuccess('Contact', 'create', [
+    $contact = $this->callAPISuccess('Contact', 'create', [
       'first_name' => 'Wodger',
       'last_name' => 'Rabbit',
       'contact_type' => 'Individual',
@@ -95,13 +95,14 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
         'date_received' => 'now',
       ],
     ]);
-    $result = $this->callApiSuccess('Contact', 'anonymise', ['contact_id' => $contact['id']]);
+    $result = $this->callAPISuccess('Contact', 'anonymise', ['contact_id' => $contact['id']]);
     $this->assertTrue(in_array(
       'Removed entries for 1 LineItem(s) from logging table \'log_civicrm_line_item\'.',
-      $result['values']
+      $result['values'],
+      TRUE
     ));
 
-    $this->callApiSuccess('Setting', 'create', ['logging' => 0]);
+    $this->callAPISuccess('Setting', 'create', ['logging' => 0]);
   }
 
   /**

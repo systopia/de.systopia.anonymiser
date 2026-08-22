@@ -68,7 +68,7 @@ function anonymiser_civicrm_summaryActions(&$actions, $contactID) {
  */
 function anonymiser_civicrm_searchTasks($objectType, &$tasks) {
   // add "anonymise" task to contact search action
-  if ($objectType == 'contact') {
+  if ($objectType === 'contact') {
     $tasks[] = [
       'title'       => E::ts('Anonymise'),
       'class'       => 'CRM_Anonymiser_Form_Task_Anonymise',
