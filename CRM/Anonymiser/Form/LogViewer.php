@@ -28,18 +28,28 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
   public const LOG_FILE_PREFIX = 'anonymiser_log_77ce8d46c26598e8073e2de039b7dd5cb637cf30';
 
   /**
+   * @var string
+   */
+  protected $log_file;
+
+  /**
+   * @var string
+   */
+  protected $return_url;
+
+  /**
    * Verify that this is our log file
    *
-   * @throws Exception
+   * @throws RuntimeException
    *   If there's something wrong with the log file.
    */
   protected function verifyLogFile() {
     if (!is_readable($this->log_file)) {
-      throw new Exception(E::ts("Log file doesn't exist or is not accessible"));
+      throw new RuntimeException(E::ts("Log file doesn't exist or is not accessible"));
     }
 
     if (strstr($this->log_file, self::LOG_FILE_PREFIX) === FALSE) {
-      throw new Exception(E::ts('Illegal log file path requested'));
+      throw new RuntimeException(E::ts('Illegal log file path requested'));
     }
   }
 

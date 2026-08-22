@@ -53,8 +53,8 @@ class CRM_Anonymiser_Worker {
   public function anonymiseContact($contact_id) {
     $contact_id = (int) $contact_id;
     $clearedEntities = [];
-    if (empty($contact_id)) {
-      throw new Exception(ts('No contact ID given!'));
+    if ($contact_id === 0) {
+      throw new RuntimeException(ts('No contact ID given!'));
     }
 
     // first of all: check if everything's in place
@@ -121,7 +121,9 @@ class CRM_Anonymiser_Worker {
       $query = CRM_Core_DAO::executeQuery("SELECT id FROM $entity_table WHERE $where_clause");
       while ($query->fetch()) {
         // delete right away, if not in the list already
-        if (empty($clearedEntities[$attachedEntity]) || !in_array($query->id, $clearedEntities[$attachedEntity], TRUE)) {
+        if (!isset($clearedEntities[$attachedEntity])
+          || !in_array($query->id, $clearedEntities[$attachedEntity], TRUE)
+        ) {
           $this->deleteEntity($attachedEntity, $query->id);
           $clearedEntities[$attachedEntity][] = $query->id;
           $counter += 1;
@@ -139,7 +141,7 @@ class CRM_Anonymiser_Worker {
     // FINALLY clean FULL LOGGING tables
     if ($this->config->deleteLogs()) {
       foreach ($clearedEntities as $entity_name => $entity_ids) {
-        if (!empty($entity_ids) && $entity_name !== 'Log') {
+        if ($entity_ids !== [] && $entity_name !== 'Log') {
           $table_name     = $this->config->getTableForEntity($entity_name);
           $log_table_name = $this->config->getLogTableForTable($table_name);
           $id_list        = implode(',', $entity_ids);
@@ -220,7 +222,7 @@ class CRM_Anonymiser_Worker {
     $identifiers = $this->config->getIdentifiers($entity_name, $contact_id);
     foreach ($identifiers['sql'] as $where_clause) {
       $table_name = $this->config->getTableForEntity($entity_name);
-      $join = empty($identifiers['join']) ? '' : $identifiers['join'];
+      $join = (!isset($identifiers['join']) || $identifiers['join'] === '') ? '' : $identifiers['join'];
       $sql = "SELECT `$table_name`.id AS entity_id FROM `$table_name` $join WHERE $where_clause";
       $query = CRM_Core_DAO::executeQuery($sql);
       while ($query->fetch()) {
@@ -278,7 +280,7 @@ class CRM_Anonymiser_Worker {
     $identify_activities = CRM_Core_DAO::executeQuery($identify_activities_sql);
     while ($identify_activities->fetch()) {
       $activity_id = $identify_activities->activity_identifier;
-      if (empty($clearedEntities['Activity'][$activity_id])) {
+      if (!isset($clearedEntities['Activity'][$activity_id])) {
         $clearedEntities['Activity'][$activity_id] = $activity_id;
         // If the parent is deleted the activity will have already been deleted. We should still
         // count it by incrementing the count.
@@ -290,7 +292,7 @@ class CRM_Anonymiser_Worker {
     }
 
     // FINALLY: delete any remaining connections (e.g. to mass activities)
-    if (!empty($clearedEntities['ActivityContact'])) {
+    if (isset($clearedEntities['ActivityContact'])) {
       $deleted_connections = count($clearedEntities['ActivityContact']);
       $entity_list = implode(',', $clearedEntities['ActivityContact']);
       CRM_Core_DAO::executeQuery("DELETE FROM civicrm_activity_contact WHERE id IN ($entity_list)");
@@ -314,7 +316,7 @@ class CRM_Anonymiser_Worker {
     foreach ($memberships['values'] as $membership) {
       $clearedEntities['Membership'][] = $membership['id'];
       $fields = $this->config->getOverrideFields('Membership', $membership);
-      if (!empty($fields)) {
+      if ($fields !== []) {
         $update_query = ['id' => $membership['id']];
         foreach ($fields as $field_name => $type) {
           $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $membership);
@@ -345,7 +347,7 @@ class CRM_Anonymiser_Worker {
     foreach ($participants['values'] as $participant) {
       $clearedEntities['Participant'][] = $participant['id'];
       $fields = $this->config->getOverrideFields('Participant', $participant);
-      if (!empty($fields)) {
+      if ($fields !== []) {
         $update_query = ['id' => $participant['id']];
         foreach ($fields as $field_name => $type) {
           $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $participant);
@@ -390,7 +392,7 @@ class CRM_Anonymiser_Worker {
       $fields = $this->config->getOverrideFields('Contribution', $contribution);
 
       // anonymise the contribution itself
-      if (!empty($fields)) {
+      if ($fields !== []) {
         $update_query = ['id' => $contribution['id']];
         foreach ($fields as $field_name => $type) {
           $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $contribution);
@@ -407,7 +409,7 @@ class CRM_Anonymiser_Worker {
       foreach ($line_items['values'] as $line_item) {
         $clearedEntities['LineItem'][] = $line_item['id'];
         $fields = $this->config->getOverrideFields('LineItem', $line_item);
-        if (!empty($fields)) {
+        if ($fields !== []) {
           $update_query = ['id' => $line_item['id']];
           foreach ($fields as $field_name => $type) {
             $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $line_item);
@@ -427,7 +429,7 @@ class CRM_Anonymiser_Worker {
         $clearedEntities['FinancialTrxn'][] = $financial_trxn_id;
 
         $fields = $this->config->getOverrideFields('FinancialTrxn');
-        if (!empty($fields)) {
+        if ($fields !== []) {
           $update_query = ['id' => $financial_trxn_id];
           foreach ($fields as $field_name => $type) {
             $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type);
@@ -453,7 +455,7 @@ class CRM_Anonymiser_Worker {
     foreach ($recurring_contributions['values'] as $recurring_contribution) {
       $clearedEntities['ContributionRecur'][] = $recurring_contribution['id'];
       $fields = $this->config->getOverrideFields('ContributionRecur', $recurring_contribution);
-      if (!empty($fields)) {
+      if ($fields !== []) {
         $update_query = ['id' => $recurring_contribution['id']];
         foreach ($fields as $field_name => $type) {
           $update_query[$field_name] = $this->config->generateAnonymousValue(

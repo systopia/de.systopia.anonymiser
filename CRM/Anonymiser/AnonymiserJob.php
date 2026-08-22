@@ -31,6 +31,11 @@ class CRM_Anonymiser_AnonymiserJob {
   protected $contact_ids;
 
   /**
+   * @var string
+   */
+  protected $log_file;
+
+  /**
    * Anonymiser Job
    *
    * @param array $contact_ids

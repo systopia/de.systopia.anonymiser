@@ -214,7 +214,7 @@ class CRM_Anonymiser_Configuration {
       case 'year_floor':
       case 'year_ceil':
       case 'month_floor':
-        if (!empty($entity[$field_name])) {
+        if (isset($entity[$field_name]) && $entity[$field_name] !== '') {
           $date = strtotime($entity[$field_name]);
           if ($type === 'year_floor') {
             return date('Y0101000000', $date);
@@ -244,7 +244,7 @@ class CRM_Anonymiser_Configuration {
     $table_name = preg_replace('/([a-z])([A-Z])/', "\\1_\\2", $entity_name);
 
     // then prepend civicrm_ and return lower case
-    return $entity_spec['table_name'] = 'civicrm_' . strtolower($table_name);
+    return 'civicrm_' . strtolower($table_name);
   }
 
   /**
@@ -419,7 +419,7 @@ class CRM_Anonymiser_Configuration {
     // otherwise, just create selectors for all cleared entities
     $clauses = [];
     foreach ($clearedEntities as $clearedEntity => $entity_ids) {
-      if (!empty($entity_ids)) {
+      if ($entity_ids !== []) {
         $table_name = $this->getTableForEntity($clearedEntity);
         $id_list    = implode(',', $entity_ids);
         $clauses[] = "(`entity_table` = '$table_name' AND `entity_id` IN ($id_list))";
@@ -526,7 +526,7 @@ class CRM_Anonymiser_Configuration {
    * an anonymisation process under the current
    * configuration
    *
-   * @throws Exception if system not ready.
+   * @throws RuntimeException if system not ready.
    */
   public function systemCheck() {
     if ($this->deleteLogs()) {
@@ -539,7 +539,7 @@ class CRM_Anonymiser_Configuration {
         . "AND engine = 'ARCHIVE';";
       $archives_present = CRM_Core_DAO::singleValueQuery($archive_check);
       if ($archives_present) {
-        throw new Exception('TODO: ARCHIVE TABLES PRESENT!');
+        throw new RuntimeException('TODO: ARCHIVE TABLES PRESENT!');
       }
     }
 
