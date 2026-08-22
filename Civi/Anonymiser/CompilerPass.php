@@ -35,7 +35,7 @@ class CompilerPass implements CompilerPassInterface {
           'AnonymiseAction',
           'Civi\Anonymiser\ActionProvider\Actions\AnonymiseAction',
           E::ts('Contact: Anonymise'),
-          []
+          [],
         ]);
     }
   }

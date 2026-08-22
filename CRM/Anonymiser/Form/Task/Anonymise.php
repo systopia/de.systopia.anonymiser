@@ -15,35 +15,32 @@
 
 use CRM_Anonymiser_ExtensionUtil as E;
 
-class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task
-{
-  /** @var int number of contacts to be anonymised per queue item */
+class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task {
+  /**
+ * @var int number of contacts to be anonymised per queue item */
   const BATCH_SIZE = 10;
 
-  public function buildQuickForm()
-  {
+  public function buildQuickForm() {
     parent::buildQuickForm();
-    $this->setTitle(E::ts("Anonymise %1 Contacts", [1 => count($this->_contactIds)]));
+    $this->setTitle(E::ts('Anonymise %1 Contacts', [1 => count($this->_contactIds)]));
   }
 
-
-  public function postProcess()
-  {
+  public function postProcess() {
     parent::postProcess();
 
     // create a runner queue
     $queue = CRM_Queue_Service::singleton()->create(
         [
-            'type'  => 'Sql',
-            'name'  => 'anonymisation_' . CRM_Core_Session::singleton()->getLoggedInContactID(),
-            'reset' => true,
+          'type'  => 'Sql',
+          'name'  => 'anonymisation_' . CRM_Core_Session::singleton()->getLoggedInContactID(),
+          'reset' => TRUE,
         ]
     );
 
     // create a log file
     $log_file = tempnam(sys_get_temp_dir(), CRM_Anonymiser_Form_LogViewer::LOG_FILE_PREFIX);
     file_put_contents($log_file,
-                      E::ts("Anonymisation Run %1", [1 => date('Y-m-d H:i:s')]).
+                      E::ts('Anonymisation Run %1', [1 => date('Y-m-d H:i:s')]) .
                       "\n================================================\n");
 
     // fill the runner queue
@@ -58,9 +55,10 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task
         $queue->createItem(
             new CRM_Anonymiser_AnonymiserJob(
                 $current_batch_contact_ids,
-                E::ts("Anonymising contacts %1 - %2", [
-                    1 => $current_offset + 1,
-                    2 => $current_offset + self::BATCH_SIZE]),
+                E::ts('Anonymising contacts %1 - %2', [
+                  1 => $current_offset + 1,
+                  2 => $current_offset + self::BATCH_SIZE,
+                ]),
                 $log_file
             )
         );
@@ -72,9 +70,10 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task
       $queue->createItem(
         new CRM_Anonymiser_AnonymiserJob(
             $current_batch_contact_ids,
-            E::ts("Anonymising contacts %1 - %2", [
-                1 => $current_offset + 1,
-                2 => $current_offset + count($current_batch_contact_ids)]),
+            E::ts('Anonymising contacts %1 - %2', [
+              1 => $current_offset + 1,
+              2 => $current_offset + count($current_batch_contact_ids),
+            ]),
             $log_file
         )
       );
@@ -85,27 +84,26 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task
     $log_link = CRM_Utils_System::url('civicrm/contact/anonymise/log', "log_file={$log_file}&return_url={$return_link}");
     $runner = new CRM_Queue_Runner(
         [
-            'title'     => E::ts("Anonymising %1 contacts...", [1 => $contact_count]),
-            'queue'     => $queue,
-            'errorMode' => CRM_Queue_Runner::ERROR_ABORT,
-            'onEndUrl'  => $log_link,
+          'title'     => E::ts('Anonymising %1 contacts...', [1 => $contact_count]),
+          'queue'     => $queue,
+          'errorMode' => CRM_Queue_Runner::ERROR_ABORT,
+          'onEndUrl'  => $log_link,
         ]
     );
 
     $runner->runAllViaWeb();
   }
 
-  private function getMessageTemplates(): array
-  {
+  private function getMessageTemplates(): array {
     $list  = [];
     $query = civicrm_api3(
         'MessageTemplate',
         'get',
         [
-            'is_active'    => 1,
-            'workflow_id'  => ['IS NULL' => 1],
-            'option.limit' => 0,
-            'return'       => 'id,msg_title',
+          'is_active'    => 1,
+          'workflow_id'  => ['IS NULL' => 1],
+          'option.limit' => 0,
+          'return'       => 'id,msg_title',
         ]
     );
 
@@ -116,16 +114,15 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task
     return $list;
   }
 
-  private function getParticipantRoles(): array
-  {
+  private function getParticipantRoles(): array {
     $list  = [];
     $query = civicrm_api3(
         'OptionValue',
         'get',
         [
-            'option_group_id' => 'participant_role',
-            'option.limit'    => 0,
-            'return'          => 'value,label',
+          'option_group_id' => 'participant_role',
+          'option.limit'    => 0,
+          'return'          => 'value,label',
         ]
     );
 
@@ -135,4 +132,5 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task
 
     return $list;
   }
+
 }

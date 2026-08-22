@@ -20,7 +20,8 @@ use CRM_Anonymiser_ExtensionUtil as E;
  */
 class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
 
-  /** @var string distinct file prefix to prevent abuse of the log file viewer */
+  /**
+ * @var string distinct file prefix to prevent abuse of the log file viewer */
   const LOG_FILE_PREFIX = 'anonymiser_log_77ce8d46c26598e8073e2de039b7dd5cb637cf30';
 
   /**
@@ -34,13 +35,13 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
       throw new Exception(E::ts("Log file doesn't exist or is not accessible"));
     }
 
-    if (strstr($this->log_file, self::LOG_FILE_PREFIX) === false) {
-      throw new Exception(E::ts("Illegal log file path requested"));
+    if (strstr($this->log_file, self::LOG_FILE_PREFIX) === FALSE) {
+      throw new Exception(E::ts('Illegal log file path requested'));
     }
   }
 
   public function buildQuickForm() {
-    $this->setTitle(E::ts("Anonymisation Log"));
+    $this->setTitle(E::ts('Anonymisation Log'));
     $this->return_url = CRM_Utils_Request::retrieve('return_url', 'String', $this);
     $this->log_file = CRM_Utils_Request::retrieve('log_file', 'String', $this);
 
@@ -52,15 +53,15 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
     $this->addButtons(
         [
             [
-                'type' => 'submit',
-                'name' => E::ts('Download'),
-                'icon' => 'fa-download',
-                'isDefault' => true,
+              'type' => 'submit',
+              'name' => E::ts('Download'),
+              'icon' => 'fa-download',
+              'isDefault' => TRUE,
             ],
             [
-                'type' => 'done',
-                'name' => E::ts('Done'),
-                'isDefault' => false,
+              'type' => 'done',
+              'name' => E::ts('Done'),
+              'isDefault' => FALSE,
             ],
         ]
     );
@@ -68,8 +69,7 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
     parent::buildQuickForm();
   }
 
-  public function postProcess()
-  {
+  public function postProcess() {
     // this means somebody clicked download
     $vars = $this->exportValues();
     if (isset($vars['_qf_LogViewer_submit'])) {
@@ -77,15 +77,17 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
       $this->verifyLogFile();
       $log_content = file_get_contents($this->log_file);
       CRM_Utils_System::download(
-          E::ts("Anonymisation %1.txt", [1 => date('Y-m-d')]),
+          E::ts('Anonymisation %1.txt', [1 => date('Y-m-d')]),
           'text/plain',
           $log_content
       );
-    } else if (isset($vars['_qf_LogViewer_done'])) {
+    }
+    elseif (isset($vars['_qf_LogViewer_done'])) {
       // go back
       CRM_Utils_System::redirect(base64_decode($this->return_url));
     }
 
     parent::postProcess();
   }
+
 }

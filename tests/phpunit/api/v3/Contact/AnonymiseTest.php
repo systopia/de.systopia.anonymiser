@@ -76,7 +76,7 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
       'api.Contribution.create' => [
         'financial_type_id' => 'Donation',
         'total_amount' => 4,
-        'date_received' => 'now'
+        'date_received' => 'now',
       ],
     ]);
 
@@ -87,7 +87,7 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
       'api.Contribution.create' => [
         'financial_type_id' => 'Donation',
         'total_amount' => 4,
-        'date_received' => 'now'
+        'date_received' => 'now',
       ],
     ]);
     $result = $this->callApiSuccess('Contact', 'anonymise', ['contact_id' => $contact['id']]);

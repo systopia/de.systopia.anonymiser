@@ -47,30 +47,29 @@ function anonymiser_civicrm_enable() {
 /**
  * add an action for the contact
  */
-function anonymiser_civicrm_summaryActions( &$actions, $contactID ) {
-  $actions['contact_anonymise'] = array(
-      'title'           => ts("Anonymise Contact", array('domain' => 'de.systopia.anonymiser')),
-      'weight'          => 5,
-      'ref'             => 'contact-anonymise',
-      'key'             => 'contact_anonymise',
-      'class'           => 'crm-popup small-popup',
-      'href'            => CRM_Utils_System::url('civicrm/contact/anonymise', "cid=$contactID"),
-      'permissions'     => array('administer CiviCRM')
-    );
+function anonymiser_civicrm_summaryActions(&$actions, $contactID) {
+  $actions['contact_anonymise'] = [
+    'title'           => ts('Anonymise Contact', ['domain' => 'de.systopia.anonymiser']),
+    'weight'          => 5,
+    'ref'             => 'contact-anonymise',
+    'key'             => 'contact_anonymise',
+    'class'           => 'crm-popup small-popup',
+    'href'            => CRM_Utils_System::url('civicrm/contact/anonymise', "cid=$contactID"),
+    'permissions'     => ['administer CiviCRM'],
+  ];
 }
 
 /**
  * add anonymisaion runner for search result
  */
-function anonymiser_civicrm_searchTasks($objectType, &$tasks)
-{
+function anonymiser_civicrm_searchTasks($objectType, &$tasks) {
   // add "anonymise" task to contact search action
   if ($objectType == 'contact') {
     $tasks[] = [
-        'title'       => E::ts('Anonymise'),
-        'class'       => 'CRM_Anonymiser_Form_Task_Anonymise',
-        'result'      => false,
-        'permissions' => ['administer CiviCRM'],
+      'title'       => E::ts('Anonymise'),
+      'class'       => 'CRM_Anonymiser_Form_Task_Anonymise',
+      'result'      => FALSE,
+      'permissions' => ['administer CiviCRM'],
     ];
   }
 }
@@ -79,7 +78,7 @@ function anonymiser_civicrm_searchTasks($objectType, &$tasks)
  * Set permission to the API calls
  */
 function anonymiser_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
-  $permissions['contact']['anonymise'] = array('administer CiviCRM');
+  $permissions['contact']['anonymise'] = ['administer CiviCRM'];
 }
 
 /**
