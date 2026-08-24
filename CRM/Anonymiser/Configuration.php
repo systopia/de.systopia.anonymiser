@@ -267,6 +267,9 @@ class CRM_Anonymiser_Configuration {
 
     // first: split camel case
     $table_name = preg_replace('/([a-z])([A-Z])/', "\\1_\\2", $entity_name);
+    if ($table_name === NULL) {
+      throw new RuntimeException('Could not process entity name.');
+    }
 
     // then prepend civicrm_ and return lower case
     return 'civicrm_' . strtolower($table_name);

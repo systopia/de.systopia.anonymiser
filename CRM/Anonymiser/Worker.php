@@ -21,9 +21,9 @@ declare(strict_types = 1);
 class CRM_Anonymiser_Worker {
 
   /**
-   * @var CRM_Anonymiser_Configuration|null store a configuration object for performance reasons
+   * @var CRM_Anonymiser_Configuration store a configuration object for performance reasons
    */
-  protected $config = NULL;
+  protected $config;
 
   /**
    * @var array<int, string> store a log file of what happened
