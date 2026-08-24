@@ -23,11 +23,17 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task {
    */
   private const BATCH_SIZE = 10;
 
+  /**
+   * @return void
+   */
   public function buildQuickForm() {
     parent::buildQuickForm();
     $this->setTitle(E::ts('Anonymise %1 Contacts', [1 => count($this->_contactIds)]));
   }
 
+  /**
+   * @return void
+   */
   public function postProcess() {
     parent::postProcess();
 

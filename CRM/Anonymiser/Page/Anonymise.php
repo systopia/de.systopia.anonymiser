@@ -17,6 +17,9 @@ declare(strict_types = 1);
 
 class CRM_Anonymiser_Page_Anonymise extends CRM_Core_Page {
 
+  /**
+   * @return void
+   */
   public function run() {
     CRM_Utils_System::setTitle(ts('Anonymise Contact', ['domain' => 'de.systopia.anonymiser']));
 

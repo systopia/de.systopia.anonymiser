@@ -21,11 +21,13 @@ declare(strict_types = 1);
 class CRM_Anonymiser_Worker {
 
   /**
-   * store a configuration object for performance reasons */
+   * @var CRM_Anonymiser_Configuration|null store a configuration object for performance reasons
+   */
   protected $config = NULL;
 
   /**
-   * store a log file of what happened */
+   * @var array<int, string> store a log file of what happened
+   */
   protected $log = [];
 
   public function __construct() {
@@ -36,18 +38,22 @@ class CRM_Anonymiser_Worker {
    * Perform the anonymisation process on the given contact
    * CAUTION: This is irreversible
    *
-   * @param $contact_id int   ID of the contact
+   * @param int $contact_id ID of the contact
+   *
+   * @return void
    */
   public static function anonymise_contact($contact_id) {
     $worker = new CRM_Anonymiser_Worker();
-    return $worker->anonymiseContact($contact_id);
+    $worker->anonymiseContact($contact_id);
   }
 
   /**
    * Perform the anonymisation process on the given contact
    * CAUTION: This is irreversible
    *
-   * @param $contact_id int   ID of the contact
+   * @param int $contact_id ID of the contact
+   *
+   * @return void
    */
   // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
   public function anonymiseContact($contact_id) {
@@ -139,7 +145,7 @@ class CRM_Anonymiser_Worker {
     $this->clearCustomData($clearedEntities);
 
     // FINALLY clean FULL LOGGING tables
-    if ($this->config->deleteLogs()) {
+    if ((int) $this->config->deleteLogs() > 0) {
       foreach ($clearedEntities as $entity_name => $entity_ids) {
         if ($entity_ids !== [] && $entity_name !== 'Log') {
           $table_name     = $this->config->getTableForEntity($entity_name);
@@ -165,6 +171,11 @@ class CRM_Anonymiser_Worker {
 
   /**
    * Anonymise the contact base
+   *
+   * @param int $contact_id
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return void
    */
   protected function anoymiseContactBase($contact_id, &$clearedEntities) {
     // first: load the contact
@@ -184,8 +195,10 @@ class CRM_Anonymiser_Worker {
   /**
    * Delete any other log entries related to the contact, even where we did not delete the entity itself
    * (possibly because it had already been deleted, or is no longer related)
-   * @param $entity_name string the name of the entity as used by the API
-   * @param $contact_id  int    ID of the contact
+   * @param string $entity_name the name of the entity as used by the API
+   * @param int $contact_id ID of the contact
+   *
+   * @return void
    */
   protected function deleteRelatedLogs($entity_name, $contact_id) {
     $table_name     = $this->config->getTableForEntity($entity_name);
@@ -193,7 +206,7 @@ class CRM_Anonymiser_Worker {
 
     $identifiers = $this->config->getIdentifiers($entity_name, $contact_id);
     // Only entities that refer directly to the contact
-    if ($identifiers['join']) {
+    if (isset($identifiers['join']) && $identifiers['join'] !== '') {
       return;
     }
     foreach ($identifiers['sql'] as $where_clause) {
@@ -212,8 +225,11 @@ class CRM_Anonymiser_Worker {
 
   /**
    * Delete an entity that is related to the contact
-   * @param $entity_name string the name of the entity as used by the API
-   * @param $entity_spec array  parameters used for identification
+   * @param string $entity_name the name of the entity as used by the API
+   * @param int $contact_id ID of the contact
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return void
    */
   protected function deleteRelatedEntities($entity_name, $contact_id, &$clearedEntities) {
     $deleted_count = 0;
@@ -238,6 +254,11 @@ class CRM_Anonymiser_Worker {
 
   /**
    * delete an individual entity
+   *
+   * @param string $entity_name
+   * @param int|string $entity_id
+   *
+   * @return void
    */
   protected function deleteEntity($entity_name, $entity_id) {
     if ($entity_name === 'Log' || $entity_name === 'EntityTag') {
@@ -256,6 +277,11 @@ class CRM_Anonymiser_Worker {
    * can be linked to a multitude of contacts
    *
    * OUR approach is: if it's linked to up to two contacts, we delete it
+   *
+   * @param int $contact_id
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return void
    */
   protected function deleteActivities($contact_id, &$clearedEntities) {
     $deleted_activities = 0;
@@ -308,6 +334,11 @@ class CRM_Anonymiser_Worker {
   /**
    * anonymises the contact's membership information,
    * without deleting statistically relevant data
+   *
+   * @param int $contact_id
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return void
    */
   protected function anonymiseMemberships($contact_id, &$clearedEntities) {
     $memberships = civicrm_api3('Membership', 'get', ['contact_id' => $contact_id, 'option.limit' => 99999]);
@@ -340,6 +371,11 @@ class CRM_Anonymiser_Worker {
   /**
    * anonymises the contact's event participation information,
    * without deleting statistically relevant data
+   *
+   * @param int $contact_id
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return void
    */
   protected function anonymiseParticipants($contact_id, &$clearedEntities) {
     $participants = civicrm_api3('Participant', 'get', ['contact_id' => $contact_id, 'option.limit' => 99999]);
@@ -371,6 +407,11 @@ class CRM_Anonymiser_Worker {
   /**
    * anonymises the contact's contribution information,
    * without deleting statistically relevant data
+   *
+   * @param int $contact_id
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return void
    */
   // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
   protected function anonymiseContributions($contact_id, &$clearedEntities) {
@@ -488,7 +529,7 @@ class CRM_Anonymiser_Worker {
   /**
    * Clear the custom data.
    *
-   * @param $clearedEntities
+   * @param array<string, array<mixed, mixed>> $clearedEntities
    *
    * @return void
    * @throws \CRM_Core_Exception
@@ -509,6 +550,10 @@ class CRM_Anonymiser_Worker {
 
   /**
    * log messages during execution
+   *
+   * @param string $message
+   *
+   * @return void
    */
   public function log($message) {
     $this->log[] = $message;
@@ -516,6 +561,8 @@ class CRM_Anonymiser_Worker {
 
   /**
    * get all log messages
+   *
+   * @return array<int, string>
    */
   public function getLog() {
     return $this->log;
@@ -525,7 +572,7 @@ class CRM_Anonymiser_Worker {
    * check if the component for this entity is enabled
    * currently only checks Membership, Participant, Contribution, ContributionRcur
    * returns true if component is enabled or not checked
-   * @param $entity
+   * @param string $entity
    * @return bool
    */
   private function isEntityComponentEnabled($entity) {
@@ -545,7 +592,7 @@ class CRM_Anonymiser_Worker {
 
   /**
    * check if this Civi Component is enabled
-   * @param $component
+   * @param string $component
    * @return bool
    */
   private function isComponentEnabled($component) {

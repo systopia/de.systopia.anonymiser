@@ -20,7 +20,9 @@ declare(strict_types = 1);
  *
  * @example SepaCreditorCreate.php Standard Create Example
  *
- * @return array API result array
+ * @param array<string, mixed> $params
+ *
+ * @return array<string, mixed> API result array
  *   {@getfields entity_batch_create}
  * @access public
  */
@@ -34,7 +36,9 @@ function civicrm_api3_contact_anonymise($params) {
  * Adjust Metadata for Create action
  *
  * The metadata is used for setting defaults, documentation & validation
- * @param array $params array or parameters determined by getfields
+ * @param array<string, mixed> $params array or parameters determined by getfields
+ *
+ * @return void
  */
 function _civicrm_api3_contact_anonymise_spec(&$params) {
   $params['contact_id']['api.required'] = 1;

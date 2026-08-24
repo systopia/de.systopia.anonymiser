@@ -42,6 +42,8 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
    *
    * @throws RuntimeException
    *   If there's something wrong with the log file.
+   *
+   * @return void
    */
   protected function verifyLogFile() {
     if (!is_readable($this->log_file)) {
@@ -53,6 +55,9 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
     }
   }
 
+  /**
+   * @return void
+   */
   public function buildQuickForm() {
     $this->setTitle(E::ts('Anonymisation Log'));
     $this->return_url = CRM_Utils_Request::retrieve('return_url', 'String', $this);
@@ -82,6 +87,9 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
     parent::buildQuickForm();
   }
 
+  /**
+   * @return void
+   */
   public function postProcess() {
     // this means somebody clicked download
     $vars = $this->exportValues();

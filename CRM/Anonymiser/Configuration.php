@@ -24,7 +24,8 @@ use CRM_Anonymiser_ExtensionUtil as E;
 class CRM_Anonymiser_Configuration {
 
   /**
-   * the name of the database used */
+   * @var string|null the name of the database used
+   */
   protected $database_name = NULL;
 
   public function __construct() {
@@ -36,53 +37,67 @@ class CRM_Anonymiser_Configuration {
    * if this returns true, the configuration
    * wants all tags for the contact to be deleted
    * otherwise they will remain unchanged
+   *
+   * @return bool
    */
   public function deleteTags() {
-    return \Civi::settings()->get('anonymiser_tags');
+    return (bool) \Civi::settings()->get('anonymiser_tags');
   }
 
   /**
    * if this returns true, the configuration
    * wants all groups associations for the contact
    * to be deleted, otherwise they will remain unchanged
+   *
+   * @return bool
    */
   public function deleteGroups() {
-    return \Civi::settings()->get('anonymiser_groups');
+    return (bool) \Civi::settings()->get('anonymiser_groups');
   }
 
   /**
    * if this returns true, the configuration
    * wants memberships to be deleted, otherwise
    * they should be anonymised
+   *
+   * @return bool
    */
   public function deleteMemberships() {
-    return \Civi::settings()->get('anonymiser_memberships');
+    return (bool) \Civi::settings()->get('anonymiser_memberships');
   }
 
   /**
    * if this returns true, the configuration
    * wants event participations to be deleted,
    * otherwise they should be anonymised
+   *
+   * @return bool
    */
   public function deleteParticipations() {
-    return \Civi::settings()->get('anonymiser_participants');
+    return (bool) \Civi::settings()->get('anonymiser_participants');
   }
 
   /**
    * if this returns true, the configuration
    * wants contributions to be deleted, otherwise
    * they should be anonymised
+   *
+   * @return bool
    */
   public function deleteContributions() {
-    return \Civi::settings()->get('anonymiser_contributions');
+    return (bool) \Civi::settings()->get('anonymiser_contributions');
   }
 
   /**
    * looks into the settings, if certain key should be deleted/reset
+   *
+   * @param string $key
+   *
+   * @return bool
    */
   public function shouldDeleteAttribute($key) {
     if (\Civi::settings()->hasExplicit('anonymiser_' . $key)) {
-      return \Civi::settings()->get('anonymiser_' . $key);
+      return (bool) \Civi::settings()->get('anonymiser_' . $key);
     }
     return TRUE;
   }
@@ -90,10 +105,10 @@ class CRM_Anonymiser_Configuration {
   /**
    * get a list of fields to override for the given entity
    *
-   * @param $entity_name  array  the entity name as used by the API
-   * @param $entity       array  entity data
+   * @param string $entity_name the entity name as used by the API
+   * @param array<string, mixed> $entity entity data
    *
-   * @return array field_name => field_type map
+   * @return array<string, string> field_name => field_type map
    */
   public function getOverrideFields($entity_name, $entity = []) {
     if ($entity_name === 'Contact') {
@@ -191,6 +206,12 @@ class CRM_Anonymiser_Configuration {
   /**
    * generate an anonymous value to fill the verious fields with.
    * this allows an override based on the field name.
+   *
+   * @param string $field_name
+   * @param string $type
+   * @param array<string, mixed> $entity
+   *
+   * @return string
    */
   // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
   public function generateAnonymousValue($field_name, $type = 'string', $entity = []) {
@@ -222,7 +243,7 @@ class CRM_Anonymiser_Configuration {
           elseif ($type === 'year_ceil') {
             return date('Y1231000000', $date);
           }
-          elseif ($type === 'month_floor') {
+          else {
             return date('Ym01000000', $date);
           }
         }
@@ -236,6 +257,10 @@ class CRM_Anonymiser_Configuration {
 
   /**
    * get the table name for an entity
+   *
+   * @param string $entity_name
+   *
+   * @return string
    */
   public function getTableForEntity($entity_name) {
     // TODO: exceptions?
@@ -249,6 +274,10 @@ class CRM_Anonymiser_Configuration {
 
   /**
    * get the entity for a table name
+   *
+   * @param string $table_name
+   *
+   * @return string
    */
   public function getEntityForTable($table_name) {
     // TODO: exceptions?
@@ -275,6 +304,8 @@ class CRM_Anonymiser_Configuration {
 
   /**
    * get all entities that should simply be deleted
+   *
+   * @return array<int, string>
    */
   public function getEntitiesToDelete() {
     // basic setup
@@ -317,6 +348,8 @@ class CRM_Anonymiser_Configuration {
    * Attached entities can be freely connected
    * to any of our contact's entities via
    * entity_table/entity_id relation or EntityEntity table
+   *
+   * @return array<int, string>
    */
   public function getAttachedEntities() {
     $entities = [
@@ -335,6 +368,11 @@ class CRM_Anonymiser_Configuration {
   /**
    * Generate the API and SQL lookup data
    * to indentify the affected records
+   *
+   * @param string $entity_name
+   * @param int $contact_id
+   *
+   * @return array<string, mixed>
    */
   public function getIdentifiers($entity_name, $contact_id) {
     // notes have both, entity_table and contact_id (creator)
@@ -414,6 +452,11 @@ class CRM_Anonymiser_Configuration {
   /**
    * generate a SQL WHERE claue to identify all instances
    * attached to the list of cleared entities
+   *
+   * @param string $entity_name
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return string
    */
   public function getAttachedEntitySelector($entity_name, $clearedEntities) {
     // otherwise, just create selectors for all cleared entities
@@ -442,6 +485,8 @@ class CRM_Anonymiser_Configuration {
   /**
    * Get a list of table names that will be touched in an
    * anonymisation process given the current configuration
+   *
+   * @return array<int, string>
    */
   public function getAffectedTables() {
     $affected_tables = ['civicrm_contact'];
@@ -482,6 +527,10 @@ class CRM_Anonymiser_Configuration {
 
   /**
    * get the corresponding log table
+   *
+   * @param string $table_name
+   *
+   * @return string
    */
   public function getLogTableForTable($table_name) {
     return "log_$table_name";
@@ -490,6 +539,10 @@ class CRM_Anonymiser_Configuration {
   /**
    * Get a list of table names in quotes that will be touched in an
    * anonymisation process given the current configuration
+   *
+   * @param string $quotation
+   *
+   * @return array<int, string>
    */
   public function getAffectedLogTables($quotation = '') {
     $affected_log_tables = [];
@@ -503,6 +556,8 @@ class CRM_Anonymiser_Configuration {
   /**
    * Should the logs also be anonymised?
    * This is FALSE if there are no log_ tables present.
+   *
+   * @return string|null
    */
   public function deleteLogs() {
     // get the tables
@@ -520,9 +575,11 @@ class CRM_Anonymiser_Configuration {
    * configuration
    *
    * @throws RuntimeException if system not ready.
+   *
+   * @return void
    */
   public function systemCheck() {
-    if ($this->deleteLogs()) {
+    if ((int) $this->deleteLogs() > 0) {
       $affected_log_tables = $this->getAffectedLogTables("'");
       $affected_log_table_list = implode(',', $affected_log_tables);
 
@@ -542,7 +599,7 @@ class CRM_Anonymiser_Configuration {
   /**
    * Return the attached custom tables for this entity
    *
-   * @param $entity
+   * @param string $entity
    *
    * @return mixed
    * @throws \CRM_Core_Exception

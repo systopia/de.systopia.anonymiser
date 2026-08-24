@@ -28,6 +28,9 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
 
   use Civi\Test\Api3TestTrait;
 
+  /**
+   * @return \Civi\Test\CiviEnvBuilder
+   */
   public function setUpHeadless() {
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
     // See: https://github.com/civicrm/org.civicrm.testapalooza/blob/master/civi-test.md
@@ -46,6 +49,8 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
 
   /**
    * Example: Test that a version is returned.
+   *
+   * @return void
    */
   public function testAnonymiseContactWithChildActivity() {
     $contact = $this->callAPISuccess('Contact', 'create', [
@@ -70,6 +75,8 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
 
   /**
    * Example: Test that a version is returned.
+   *
+   * @return void
    */
   public function testAnonmyseContactWithLogging() {
     $this->callAPISuccess('Setting', 'create', ['logging' => 0]);
@@ -107,8 +114,11 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
 
   /**
    * Implements hook_alterLogTables().
+   *
+   * @param array<string, array<string, mixed>> $logTableSpec
    */
-  public function hook_civicrm_alterLogTables(&$logTableSpec) {
+  // phpcs:ignore Drupal.Commenting.HookComment.HookParamDoc
+  public function hook_civicrm_alterLogTables(array &$logTableSpec): void {
     foreach (array_keys($logTableSpec) as $tableName) {
       $logTableSpec[$tableName]['engine'] = 'INNODB';
       $logTableSpec[$tableName]['engine_config'] = 'ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=4';
