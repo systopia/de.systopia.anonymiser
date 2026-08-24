@@ -75,7 +75,7 @@ class CRM_Anonymiser_Worker {
     }
 
     // delete ACTIVITIES
-    $this->deleteActivities($entity_name, $contact_id, $clearedEntities);
+    $this->deleteActivities($contact_id, $clearedEntities);
 
     // ANONYMISE memberships
     if (!$this->config->deleteMemberships()) {
@@ -257,7 +257,7 @@ class CRM_Anonymiser_Worker {
    *
    * OUR approach is: if it's linked to up to two contacts, we delete it
    */
-  protected function deleteActivities($entity_name, $contact_id, &$clearedEntities) {
+  protected function deleteActivities($contact_id, &$clearedEntities) {
     $deleted_activities = 0;
     $deleted_connections = 0;
 
