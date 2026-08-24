@@ -36,11 +36,11 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
       ->apply();
   }
 
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
   }
 
-  public function tearDown() {
+  public function tearDown(): void {
     parent::tearDown();
   }
 
@@ -96,7 +96,7 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
       ],
     ]);
     $result = $this->callAPISuccess('Contact', 'anonymise', ['contact_id' => $contact['id']]);
-    $this->assertTrue(in_array(
+    self::assertTrue(in_array(
       'Removed entries for 1 LineItem(s) from logging table \'log_civicrm_line_item\'.',
       $result['values'],
       TRUE

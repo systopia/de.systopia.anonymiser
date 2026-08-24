@@ -44,7 +44,7 @@ class AnonymiseAction extends AbstractAction {
       civicrm_api3('Contact', 'anonymise', ['contact_id' => $contact_id]);
     }
     catch (\CRM_Core_Exception $ex) {
-      // Do nothing.
+      // @ignoreException Do nothing.
     }
   }
 

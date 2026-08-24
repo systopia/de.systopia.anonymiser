@@ -94,3 +94,11 @@ foreach ($bootstrapFiles as $bootstrapFile) {
 if (file_exists(__DIR__ . '/vendor/autoload.php')) {
   require_once __DIR__ . '/vendor/autoload.php';
 }
+
+// civix wraps PHPUnit's TestCase in a "CivixPhar\PHPUnit\..." namespace alias at test
+// runtime (phar-scoping, to avoid clashing with other PHPUnit versions loaded in the
+// same process). That alias only ever gets created dynamically by civix, so PHPStan
+// can't resolve test classes extending it on its own. Teach it about the alias here.
+if (class_exists(\PHPUnit\Framework\TestCase::class) && !class_exists(\CivixPhar\PHPUnit\Framework\TestCase::class, FALSE)) {
+  class_alias(\PHPUnit\Framework\TestCase::class, \CivixPhar\PHPUnit\Framework\TestCase::class);
+}
