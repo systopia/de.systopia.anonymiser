@@ -35,7 +35,7 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task {
     $queue = CRM_Queue_Service::singleton()->create(
         [
           'type'  => 'Sql',
-          'name'  => 'anonymisation_' . CRM_Core_Session::singleton()->getLoggedInContactID(),
+          'name'  => 'anonymisation_' . CRM_Core_Session::getLoggedInContactID(),
           'reset' => TRUE,
         ]
     );

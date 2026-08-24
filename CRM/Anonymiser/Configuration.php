@@ -538,7 +538,7 @@ class CRM_Anonymiser_Configuration {
         . "WHERE table_schema = '{$this->database_name}' AND table_name IN ($affected_log_table_list) "
         . "AND engine = 'ARCHIVE';";
       $archives_present = CRM_Core_DAO::singleValueQuery($archive_check);
-      if ($archives_present) {
+      if ((int) $archives_present > 0) {
         throw new RuntimeException('TODO: ARCHIVE TABLES PRESENT!');
       }
     }

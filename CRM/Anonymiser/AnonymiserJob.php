@@ -27,7 +27,7 @@ class CRM_Anonymiser_AnonymiserJob {
   public $title;
 
   /**
-   * @var $contact_ids array */
+   * @var array */
   protected $contact_ids;
 
   /**

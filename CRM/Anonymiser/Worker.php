@@ -496,7 +496,7 @@ class CRM_Anonymiser_Worker {
   protected function clearCustomData($clearedEntities) {
     $sqlStatements = [];
     foreach ($clearedEntities as $entity => $ids) {
-      if (count($ids)) {
+      if (count($ids) > 0) {
         $customTables = $this->config->getCustomTablesForEntity($entity);
         foreach ($customTables as $customTable) {
           CRM_Core_DAO::executeQuery(

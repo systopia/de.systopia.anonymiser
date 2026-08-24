@@ -27,7 +27,7 @@ class CRM_Anonymiser_Page_Anonymise extends CRM_Core_Page {
       $contact_id = (int) $_REQUEST['cid'];
     }
 
-    if ($contact_id) {
+    if ($contact_id !== 0) {
       $contact = civicrm_api3('Contact', 'getsingle', ['id' => $contact_id]);
       $this->assign('contact', $contact);
       parent::run();
