@@ -97,6 +97,9 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
       // download the log file
       $this->verifyLogFile();
       $log_content = file_get_contents($this->log_file);
+      if ($log_content === FALSE) {
+        throw new RuntimeException(E::ts('Could not read the log file'));
+      }
       CRM_Utils_System::download(
           E::ts('Anonymisation %1.txt', [1 => date('Y-m-d')]),
           'text/plain',
@@ -105,7 +108,11 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
     }
     elseif (isset($vars['_qf_LogViewer_done'])) {
       // go back
-      CRM_Utils_System::redirect(base64_decode($this->return_url, TRUE));
+      $return_url = base64_decode($this->return_url, TRUE);
+      if ($return_url === FALSE) {
+        throw new RuntimeException(E::ts('Illegal return URL requested'));
+      }
+      CRM_Utils_System::redirect($return_url);
     }
 
     parent::postProcess();

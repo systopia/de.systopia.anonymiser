@@ -125,6 +125,9 @@ class CRM_Anonymiser_Worker {
       $entity_table = $this->config->getTableForEntity($attachedEntity);
       $where_clause = $this->config->getAttachedEntitySelector($attachedEntity, $clearedEntities);
       $query = CRM_Core_DAO::executeQuery("SELECT id FROM $entity_table WHERE $where_clause");
+      if (!($query instanceof CRM_Core_DAO)) {
+        throw new RuntimeException('Unexpected query result.');
+      }
       while ($query->fetch()) {
         // delete right away, if not in the list already
         if (!isset($clearedEntities[$attachedEntity])
@@ -181,6 +184,9 @@ class CRM_Anonymiser_Worker {
     // first: load the contact
     $clearedEntities['Contact'][] = $contact_id;
     $contact = civicrm_api3('Contact', 'getsingle', ['id' => $contact_id]);
+    if (!is_array($contact)) {
+      throw new RuntimeException('Unexpected API result.');
+    }
     // then: get all fields to overwrite
     $fields = $this->config->getOverrideFields('Contact', $contact);
     $erase_query = ['id' => $contact_id];
@@ -212,6 +218,9 @@ class CRM_Anonymiser_Worker {
     foreach ($identifiers['sql'] as $where_clause) {
       $query = "DELETE FROM `$log_table_name` WHERE $where_clause";
       $result = CRM_Core_DAO::executeQuery($query);
+      if (!($result instanceof CRM_Core_DAO)) {
+        throw new RuntimeException('Unexpected query result.');
+      }
       $row_count = $result->affectedRows();
       if ($row_count) {
         $this->log(ts("Removed %1 additional log entries referencing this contact from logging table '%2'.", [
@@ -241,6 +250,9 @@ class CRM_Anonymiser_Worker {
       $join = (!isset($identifiers['join']) || $identifiers['join'] === '') ? '' : $identifiers['join'];
       $sql = "SELECT `$table_name`.id AS entity_id FROM `$table_name` $join WHERE $where_clause";
       $query = CRM_Core_DAO::executeQuery($sql);
+      if (!($query instanceof CRM_Core_DAO)) {
+        throw new RuntimeException('Unexpected query result.');
+      }
       while ($query->fetch()) {
         $clearedEntities[$entity_name][] = $query->entity_id;
         $this->deleteEntity($entity_name, $query->entity_id);
@@ -290,6 +302,9 @@ class CRM_Anonymiser_Worker {
     // FIRST: find all contact-activity relations
     $identify_connections_sql = "SELECT id FROM civicrm_activity_contact WHERE contact_id = $contact_id";
     $identify_connections = CRM_Core_DAO::executeQuery($identify_connections_sql);
+    if (!($identify_connections instanceof CRM_Core_DAO)) {
+      throw new RuntimeException('Unexpected query result.');
+    }
     while ($identify_connections->fetch()) {
       $clearedEntities['ActivityContact'][] = $identify_connections->id;
     }
@@ -304,6 +319,9 @@ class CRM_Anonymiser_Worker {
       . ' AND 2 >= (SELECT COUNT(DISTINCT(contact_id)) FROM civicrm_activity_contact'
       . ' WHERE civicrm_activity.id = activity_id);';
     $identify_activities = CRM_Core_DAO::executeQuery($identify_activities_sql);
+    if (!($identify_activities instanceof CRM_Core_DAO)) {
+      throw new RuntimeException('Unexpected query result.');
+    }
     while ($identify_activities->fetch()) {
       $activity_id = $identify_activities->activity_identifier;
       if (!isset($clearedEntities['Activity'][$activity_id])) {
@@ -342,6 +360,9 @@ class CRM_Anonymiser_Worker {
    */
   protected function anonymiseMemberships($contact_id, &$clearedEntities) {
     $memberships = civicrm_api3('Membership', 'get', ['contact_id' => $contact_id, 'option.limit' => 99999]);
+    if (!is_array($memberships)) {
+      throw new RuntimeException('Unexpected API result.');
+    }
 
     // iterate through all memberships
     foreach ($memberships['values'] as $membership) {
@@ -379,6 +400,9 @@ class CRM_Anonymiser_Worker {
    */
   protected function anonymiseParticipants($contact_id, &$clearedEntities) {
     $participants = civicrm_api3('Participant', 'get', ['contact_id' => $contact_id, 'option.limit' => 99999]);
+    if (!is_array($participants)) {
+      throw new RuntimeException('Unexpected API result.');
+    }
     // iterate through all participants
     foreach ($participants['values'] as $participant) {
       $clearedEntities['Participant'][] = $participant['id'];
@@ -421,7 +445,10 @@ class CRM_Anonymiser_Worker {
       'option.limit' => 99999,
       'is_test' => 1,
     ]);
-    $all_contributions  = array_merge($contributions['values'], $test_contributions['values']);
+    if (!is_array($contributions) || !is_array($test_contributions)) {
+      throw new RuntimeException('Unexpected API result.');
+    }
+    $all_contributions = array_merge($contributions['values'], $test_contributions['values']);
 
     $contribution_counter   = 0;
     $financial_trxn_counter = 0;
@@ -447,6 +474,9 @@ class CRM_Anonymiser_Worker {
         'contribution_id' => ['IN' => $clearedEntities['Contribution']],
         'options' => ['limit' => 0],
       ]);
+      if (!is_array($line_items)) {
+        throw new RuntimeException('Unexpected API result.');
+      }
       foreach ($line_items['values'] as $line_item) {
         $clearedEntities['LineItem'][] = $line_item['id'];
         $fields = $this->config->getOverrideFields('LineItem', $line_item);
@@ -464,6 +494,9 @@ class CRM_Anonymiser_Worker {
       $entity_table = $this->config->getTableForEntity('FinancialTrxn');
       $where_clause = $this->config->getAttachedEntitySelector('FinancialTrxn', $clearedEntities);
       $query = CRM_Core_DAO::executeQuery("SELECT id FROM $entity_table WHERE $where_clause");
+      if (!($query instanceof CRM_Core_DAO)) {
+        throw new RuntimeException('Unexpected query result.');
+      }
       while ($query->fetch()) {
         // anonymise every one of it
         $financial_trxn_id = $query->id;
@@ -493,6 +526,9 @@ class CRM_Anonymiser_Worker {
       'contact_id' => $contact_id,
       'option.limit' => 99999,
     ]);
+    if (!is_array($recurring_contributions)) {
+      throw new RuntimeException('Unexpected API result.');
+    }
     foreach ($recurring_contributions['values'] as $recurring_contribution) {
       $clearedEntities['ContributionRecur'][] = $recurring_contribution['id'];
       $fields = $this->config->getOverrideFields('ContributionRecur', $recurring_contribution);

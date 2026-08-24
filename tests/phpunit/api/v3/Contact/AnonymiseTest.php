@@ -58,12 +58,14 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
       'last_name' => 'Rabbit',
       'contact_type' => 'Individual',
     ]);
+    self::assertIsArray($contact);
     $parentActivity = $this->callAPISuccess('Activity', 'create', [
       'source_contact_id' => $contact['id'],
       'target_contact_id' => $contact['id'],
       'activity_type_id' => 'Meeting',
       'subject' => 'Eat Carrot',
     ]);
+    self::assertIsArray($parentActivity);
     $this->callAPISuccess('Activity', 'create', [
       'source_contact_id' => $contact['id'],
       'activity_type_id' => 'Meeting',
@@ -102,7 +104,9 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
         'date_received' => 'now',
       ],
     ]);
+    self::assertIsArray($contact);
     $result = $this->callAPISuccess('Contact', 'anonymise', ['contact_id' => $contact['id']]);
+    self::assertIsArray($result);
     self::assertTrue(in_array(
       'Removed entries for 1 LineItem(s) from logging table \'log_civicrm_line_item\'.',
       $result['values'],

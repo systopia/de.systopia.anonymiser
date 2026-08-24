@@ -295,6 +295,9 @@ class CRM_Anonymiser_Configuration {
     // then: replace all remaining '_' by capitalising the following character
     $entity_name = '';
     $parts = preg_split('/_/', $table_name);
+    if ($parts === FALSE) {
+      $parts = [];
+    }
     foreach ($parts as $name_part) {
       $entity_name .= strtoupper(substr($name_part, 0, 1)) . substr($name_part, 1);
     }
@@ -629,6 +632,9 @@ class CRM_Anonymiser_Configuration {
         'extends' => ['IN' => $extends],
         'options' => ['limit' => 0],
       ]);
+      if (!is_array($result)) {
+        throw new RuntimeException('Unexpected API result.');
+      }
       foreach ($result['values'] as $custom_group) {
         \Civi::$statics[E::LONG_NAME]['custom_tables'][$entity][] = $custom_group['table_name'];
       }
