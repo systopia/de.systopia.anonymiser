@@ -100,43 +100,4 @@ class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task {
     $runner->runAllViaWeb();
   }
 
-  private function getMessageTemplates(): array {
-    $list  = [];
-    $query = civicrm_api3(
-        'MessageTemplate',
-        'get',
-        [
-          'is_active'    => 1,
-          'workflow_id'  => ['IS NULL' => 1],
-          'option.limit' => 0,
-          'return'       => 'id,msg_title',
-        ]
-    );
-
-    foreach ($query['values'] as $status) {
-      $list[$status['id']] = $status['msg_title'];
-    }
-
-    return $list;
-  }
-
-  private function getParticipantRoles(): array {
-    $list  = [];
-    $query = civicrm_api3(
-        'OptionValue',
-        'get',
-        [
-          'option_group_id' => 'participant_role',
-          'option.limit'    => 0,
-          'return'          => 'value,label',
-        ]
-    );
-
-    foreach ($query['values'] as $role) {
-      $list[$role['value']] = $role['label'];
-    }
-
-    return $list;
-  }
-
 }

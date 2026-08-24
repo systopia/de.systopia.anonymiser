@@ -502,16 +502,9 @@ class CRM_Anonymiser_Configuration {
 
   /**
    * Should the logs also be anonymised?
-   * This is also FALSE if the user requested it, but there is
-   * no log_ tables present.
+   * This is FALSE if there are no log_ tables present.
    */
   public function deleteLogs() {
-    // TODO: read config
-    $anonymise_logs = TRUE;
-    if (!$anonymise_logs) {
-      return FALSE;
-    }
-
     // get the tables
     $affected_log_tables = $this->getAffectedLogTables("'");
     $affected_log_table_list = implode(',', $affected_log_tables);
