@@ -60,8 +60,13 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
    */
   public function buildQuickForm() {
     $this->setTitle(E::ts('Anonymisation Log'));
-    $this->return_url = CRM_Utils_Request::retrieve('return_url', 'String', $this);
-    $this->log_file = CRM_Utils_Request::retrieve('log_file', 'String', $this);
+    $return_url = CRM_Utils_Request::retrieve('return_url', 'String', $this);
+    $log_file = CRM_Utils_Request::retrieve('log_file', 'String', $this);
+    if (!is_string($return_url) || !is_string($log_file)) {
+      throw new RuntimeException('Missing or invalid request parameters.');
+    }
+    $this->return_url = $return_url;
+    $this->log_file = $log_file;
 
     // add log data
     $this->verifyLogFile();

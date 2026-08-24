@@ -217,7 +217,12 @@ class CRM_Anonymiser_Configuration {
   public function generateAnonymousValue($field_name, $type = 'string', $entity = []) {
     switch ($type) {
       case 'anon_name':
-        return "{$entity['contact_type']}-{$entity['id']}";
+        $contact_type = $entity['contact_type'] ?? '';
+        $entity_id = $entity['id'] ?? '';
+        if (!is_string($contact_type) || !is_scalar($entity_id)) {
+          throw new RuntimeException('Unexpected entity data.');
+        }
+        return "$contact_type-$entity_id";
 
       case 'sha1':
         // generate random string
@@ -236,7 +241,13 @@ class CRM_Anonymiser_Configuration {
       case 'year_ceil':
       case 'month_floor':
         if (isset($entity[$field_name]) && $entity[$field_name] !== '') {
+          if (!is_string($entity[$field_name])) {
+            throw new RuntimeException('Unexpected entity data.');
+          }
           $date = strtotime($entity[$field_name]);
+          if ($date === FALSE) {
+            throw new RuntimeException('Could not parse date.');
+          }
           if ($type === 'year_floor') {
             return date('Y0101000000', $date);
           }
@@ -378,7 +389,7 @@ class CRM_Anonymiser_Configuration {
    * @param string $entity_name
    * @param int $contact_id
    *
-   * @return array<string, mixed>
+   * @return array{sql: array<int, string>, join?: string, api?: mixed}
    */
   public function getIdentifiers($entity_name, $contact_id) {
     // notes have both, entity_table and contact_id (creator)
@@ -470,7 +481,8 @@ class CRM_Anonymiser_Configuration {
     foreach ($clearedEntities as $clearedEntity => $entity_ids) {
       if ($entity_ids !== []) {
         $table_name = $this->getTableForEntity($clearedEntity);
-        $id_list    = implode(',', $entity_ids);
+        $scalar_ids = array_filter($entity_ids, 'is_scalar');
+        $id_list    = implode(',', array_map('strval', $scalar_ids));
         $clauses[] = "(`entity_table` = '$table_name' AND `entity_id` IN ($id_list))";
       }
     }
@@ -607,7 +619,7 @@ class CRM_Anonymiser_Configuration {
    *
    * @param string $entity
    *
-   * @return mixed
+   * @return array<int, string>
    * @throws \CRM_Core_Exception
    */
   public function getCustomTablesForEntity($entity) {

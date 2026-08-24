@@ -2,5 +2,5 @@ parameters:
 	ignoreErrors:
 		-
 			message: '#^In method "CRM_Anonymiser_Page_Anonymise\:\:run", you should not use the \$_REQUEST superglobal\. You should instead rely on your framework that provides you with a "request" object \(for instance a PSR\-7 RequestInterface or a Symfony Request\)\. More info\: http\://bit\.ly/nosuperglobals$#'
-			count: 4
+			count: 1
 			path: CRM/Anonymiser/Page/Anonymise.php

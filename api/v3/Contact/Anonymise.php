@@ -27,8 +27,11 @@ declare(strict_types = 1);
  * @access public
  */
 function civicrm_api3_contact_anonymise($params) {
+  if (!is_numeric($params['contact_id'] ?? NULL)) {
+    throw new RuntimeException('Missing or invalid contact_id.');
+  }
   $worker = new CRM_Anonymiser_Worker();
-  $worker->anonymiseContact($params['contact_id']);
+  $worker->anonymiseContact((int) $params['contact_id']);
   return civicrm_api3_create_success($worker->getLog());
 }
 
@@ -41,5 +44,8 @@ function civicrm_api3_contact_anonymise($params) {
  * @return void
  */
 function _civicrm_api3_contact_anonymise_spec(&$params) {
+  if (!isset($params['contact_id']) || !is_array($params['contact_id'])) {
+    $params['contact_id'] = [];
+  }
   $params['contact_id']['api.required'] = 1;
 }

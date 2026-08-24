@@ -23,11 +23,12 @@ class CRM_Anonymiser_Page_Anonymise extends CRM_Core_Page {
   public function run() {
     CRM_Utils_System::setTitle(ts('Anonymise Contact', ['domain' => 'de.systopia.anonymiser']));
 
-    if (!isset($_REQUEST['cid']) || $_REQUEST['cid'] === '' || $_REQUEST['cid'] === '0') {
+    $cid = $_REQUEST['cid'] ?? NULL;
+    if ((!is_string($cid) && !is_int($cid)) || $cid === '' || $cid === '0') {
       $contact_id = 0;
     }
     else {
-      $contact_id = (int) $_REQUEST['cid'];
+      $contact_id = (int) $cid;
     }
 
     if ($contact_id !== 0) {

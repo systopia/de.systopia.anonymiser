@@ -99,6 +99,9 @@ function anonymiser_civicrm_searchTasks($objectType, &$tasks) {
  * @return void
  */
 function anonymiser_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
+  if (!isset($permissions['contact']) || !is_array($permissions['contact'])) {
+    $permissions['contact'] = [];
+  }
   $permissions['contact']['anonymise'] = ['administer CiviCRM'];
 }
 

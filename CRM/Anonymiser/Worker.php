@@ -575,9 +575,11 @@ class CRM_Anonymiser_Worker {
     foreach ($clearedEntities as $entity => $ids) {
       if (count($ids) > 0) {
         $customTables = $this->config->getCustomTablesForEntity($entity);
+        $scalar_ids = array_filter($ids, 'is_scalar');
+        $id_list = implode(',', array_map('strval', $scalar_ids));
         foreach ($customTables as $customTable) {
           CRM_Core_DAO::executeQuery(
-            'DELETE FROM `' . $customTable . '` WHERE `entity_id` IN(' . implode(',', $ids) . ');'
+            'DELETE FROM `' . $customTable . '` WHERE `entity_id` IN(' . $id_list . ');'
           );
         }
       }
@@ -632,7 +634,11 @@ class CRM_Anonymiser_Worker {
    * @return bool
    */
   private function isComponentEnabled($component) {
-    return in_array($component, Civi::settings()->get('enable_components'), TRUE);
+    $enabled_components = Civi::settings()->get('enable_components');
+    if (!is_array($enabled_components)) {
+      throw new RuntimeException('Unexpected settings value.');
+    }
+    return in_array($component, $enabled_components, TRUE);
   }
 
 }
