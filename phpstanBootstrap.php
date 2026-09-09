@@ -102,3 +102,16 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 if (class_exists(\PHPUnit\Framework\TestCase::class) && !class_exists(\CivixPhar\PHPUnit\Framework\TestCase::class, FALSE)) {
   class_alias(\PHPUnit\Framework\TestCase::class, \CivixPhar\PHPUnit\Framework\TestCase::class);
 }
+
+// CiviCRM moved Civi\Test\HookInterface (its original location) to
+// Civi\Core\HookInterface, keeping the old name as a class_alias() for
+// backwards compatibility. Depending on which CiviCRM version is installed,
+// only one of the two names is the *real* declaration - PHPStan's static
+// scan doesn't execute that class_alias() call on its own, so bridge both
+// directions here.
+if (interface_exists(\Civi\Core\HookInterface::class) && !interface_exists(\Civi\Test\HookInterface::class, FALSE)) {
+  class_alias(\Civi\Core\HookInterface::class, \Civi\Test\HookInterface::class);
+}
+elseif (interface_exists(\Civi\Test\HookInterface::class) && !interface_exists(\Civi\Core\HookInterface::class, FALSE)) {
+  class_alias(\Civi\Test\HookInterface::class, \Civi\Core\HookInterface::class);
+}

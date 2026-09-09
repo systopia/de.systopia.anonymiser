@@ -96,7 +96,13 @@ class CRM_Anonymiser_Configuration {
    * @return bool
    */
   public function shouldDeleteAttribute($key) {
-    if (\Civi::settings()->hasExplicit('anonymiser_' . $key)) {
+    $settings = \Civi::settings();
+    // hasExplicit() (the correctly spelled method) only exists since CiviCRM
+    // 6.4; hasExplict() is deprecated there, but is the only name present on
+    // older, still-supported versions (down to 5.76). Pick whichever exists
+    // at runtime, so this neither warns on new cores nor breaks on old ones.
+    $method = method_exists($settings, 'hasExplicit') ? 'hasExplicit' : 'hasExplict';
+    if (call_user_func([$settings, $method], 'anonymiser_' . $key)) {
       return (bool) \Civi::settings()->get('anonymiser_' . $key);
     }
     return TRUE;
