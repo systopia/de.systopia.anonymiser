@@ -46,6 +46,14 @@ jobs:
         env:
           fail-fast: true
 
+      - name: Checkout Action Provider extension
+        # AnonymiseAction.php / CompilerPass.php optionally integrate with the
+        # "actionprovider" extension. It's not a composer/runtime dependency
+        # (see anonymiser.php's hook_civicrm_container), so PHPStan needs a
+        # real checkout to resolve its classes; a local phpstan.neon typically
+        # scans one from a sibling directory the same way.
+        run: git clone --depth 1 https://lab.civicrm.org/extensions/action-provider.git "$(dirname "$PWD")/action-provider"
+
       - name: Get composer cache directory
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT

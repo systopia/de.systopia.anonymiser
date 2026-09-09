@@ -2,6 +2,11 @@ includes:
 	- phpstan.neon.dist
 
 parameters:
+	# Optional "actionprovider" extension (see AnonymiseAction.php / CompilerPass.php),
+	# checked out as a sibling directory by the "Checkout Action Provider extension"
+	# workflow step - mirrors what a local phpstan.neon typically points at.
+	scanDirectories:
+		- ../action-provider/
 	bootstrapFiles:
 		- vendor/autoload.php
 	# Because we test with different versions in CI we may have unmatched errors.
