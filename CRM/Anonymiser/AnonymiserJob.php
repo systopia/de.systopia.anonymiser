@@ -13,6 +13,8 @@
 | written permission from the original author(s).        |
 +-------------------------------------------------------*/
 
+declare(strict_types = 1);
+
 use CRM_Anonymiser_ExtensionUtil as E;
 
 /**
@@ -20,16 +22,24 @@ use CRM_Anonymiser_ExtensionUtil as E;
  */
 class CRM_Anonymiser_AnonymiserJob {
 
-  /** @var string $title Will be set as title by the runner. */
+  /**
+   * @var string*/
   public $title;
 
-  /** @var $contact_ids array */
+  /**
+   * @var array<int, int>
+   */
   protected $contact_ids;
+
+  /**
+   * @var string
+   */
+  protected $log_file;
 
   /**
    * Anonymiser Job
    *
-   * @param array $contact_ids
+   * @param array<int, int> $contact_ids
    *   list of contact IDs to be anonymised
    *
    * @param string $next_title
@@ -50,15 +60,14 @@ class CRM_Anonymiser_AnonymiserJob {
    *
    * @return true
    */
-  public function run(): bool
-  {
+  public function run(): bool {
     // create a worker instance
     $anonymiser = new CRM_Anonymiser_Worker();
 
     // anonymise all contacts
     foreach ($this->contact_ids as $contact_id) {
       $anonymiser->log("\n");
-      $anonymiser->log(E::ts("Anonymisation of contact [%1]", [1 => $contact_id]));
+      $anonymiser->log(E::ts('Anonymisation of contact [%1]', [1 => $contact_id]));
       $anonymiser->log('--------------------------------------------------------');
       $anonymiser->anonymiseContact($contact_id);
     }
@@ -70,7 +79,7 @@ class CRM_Anonymiser_AnonymiserJob {
         FILE_APPEND
     );
 
-    return true;
+    return TRUE;
   }
 
 }

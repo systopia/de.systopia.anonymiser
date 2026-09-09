@@ -13,16 +13,22 @@
 | written permission from the original author(s).        |
 +-------------------------------------------------------*/
 
+declare(strict_types = 1);
+
 /**
  * This worker class will perform the actual anonymisation process
  */
 class CRM_Anonymiser_Worker {
 
-  /** store a configuration object for performance reasons */
-  protected $config = NULL;
+  /**
+   * @var CRM_Anonymiser_Configuration store a configuration object for performance reasons
+   */
+  protected $config;
 
-  /** store a log file of what happened */
-  protected $log = array();
+  /**
+   * @var array<int, string> store a log file of what happened
+   */
+  protected $log = [];
 
   public function __construct() {
     $this->config = new CRM_Anonymiser_Configuration();
@@ -32,25 +38,30 @@ class CRM_Anonymiser_Worker {
    * Perform the anonymisation process on the given contact
    * CAUTION: This is irreversible
    *
-   * @param $contact_id int   ID of the contact
+   * @param int $contact_id ID of the contact
+   *
+   * @return void
    */
   public static function anonymise_contact($contact_id) {
     $worker = new CRM_Anonymiser_Worker();
-    return $worker->anonymiseContact($contact_id);
+    $worker->anonymiseContact($contact_id);
   }
-
-
 
   /**
    * Perform the anonymisation process on the given contact
    * CAUTION: This is irreversible
    *
-   * @param $contact_id int   ID of the contact
+   * @param int $contact_id ID of the contact
+   *
+   * @return void
    */
+  // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
   public function anonymiseContact($contact_id) {
     $contact_id = (int) $contact_id;
-    $clearedEntities = array();
-    if (empty($contact_id)) throw new Exception(ts("No contact ID given!"));
+    $clearedEntities = [];
+    if ($contact_id === 0) {
+      throw new RuntimeException(ts('No contact ID given!'));
+    }
 
     // first of all: check if everything's in place
     $this->config->systemCheck();
@@ -59,48 +70,51 @@ class CRM_Anonymiser_Worker {
     $entities_to_delete = $this->config->getEntitiesToDelete();
     foreach ($entities_to_delete as $entity_name) {
       if ($this->isEntityComponentEnabled($entity_name)) {
-          $this->deleteRelatedEntities($entity_name, $contact_id, $clearedEntities);
-      }else{
-          $this->log(ts("Warning: Can not delete potentiall %1 entries because Component is disabled.",array(1 => $entity_name, 'domain' => 'de.systopia.anonymiser')));
+        $this->deleteRelatedEntities($entity_name, $contact_id, $clearedEntities);
+      }
+      else {
+        $this->log(ts('Warning: Can not delete potentiall %1 entries because Component is disabled.', [
+          1 => $entity_name,
+          'domain' => 'de.systopia.anonymiser',
+        ]));
       }
     }
 
     // delete ACTIVITIES
-    $this->deleteActivities($entity_name, $contact_id, $clearedEntities);
+    $this->deleteActivities($contact_id, $clearedEntities);
 
     // ANONYMISE memberships
-    if (!$this->config->deleteMemberships()){
-      if ($this->isComponentEnabled('CiviMember')){
+    if (!$this->config->deleteMemberships()) {
+      if ($this->isComponentEnabled('CiviMember')) {
         $this->anonymiseMemberships($contact_id, $clearedEntities);
-      }else{
-        $this->log(ts("Warning: Can not anonymize potentiall Membership entries because Component is disabled."));
+      }
+      else {
+        $this->log(ts('Warning: Can not anonymize potentiall Membership entries because Component is disabled.'));
       }
     }
-
 
     // ANONYMISE participants
     if (!$this->config->deleteParticipations()) {
-      if ($this->isComponentEnabled('CiviEvent')){
+      if ($this->isComponentEnabled('CiviEvent')) {
         $this->anonymiseParticipants($contact_id, $clearedEntities);
-      }else{
-        $this->log(ts("Warning: Can not anonymize potentiall Participant entries because Component is disabled."));
+      }
+      else {
+        $this->log(ts('Warning: Can not anonymize potentiall Participant entries because Component is disabled.'));
       }
     }
-
-
 
     // ANONYMISE contributions
     if (!$this->config->deleteContributions()) {
       if ($this->isComponentEnabled('CiviContribute')) {
         $this->anonymiseContributions($contact_id, $clearedEntities);
-      }else{
-        $this->log(ts("Warning: Can not anonymize potentiall Contribution entries because Component is disabled."));
+      }
+      else {
+        $this->log(ts('Warning: Can not anonymize potentiall Contribution entries because Component is disabled.'));
       }
     }
 
     // THEN: clean out the basic data
     $this->anoymiseContactBase($contact_id, $clearedEntities);
-
 
     // NOW: FIRST FIND 'free' attached entities, i.e. entities that can be connected to
     //  any of the processed entities
@@ -111,29 +125,43 @@ class CRM_Anonymiser_Worker {
       $entity_table = $this->config->getTableForEntity($attachedEntity);
       $where_clause = $this->config->getAttachedEntitySelector($attachedEntity, $clearedEntities);
       $query = CRM_Core_DAO::executeQuery("SELECT id FROM $entity_table WHERE $where_clause");
+      if (!($query instanceof CRM_Core_DAO)) {
+        throw new RuntimeException('Unexpected query result.');
+      }
       while ($query->fetch()) {
         // delete right away, if not in the list already
-        if (empty($clearedEntities[$attachedEntity]) || !in_array($query->id, $clearedEntities[$attachedEntity])) {
+        if (!isset($clearedEntities[$attachedEntity])
+          || !in_array($query->id, $clearedEntities[$attachedEntity], TRUE)
+        ) {
           $this->deleteEntity($attachedEntity, $query->id);
           $clearedEntities[$attachedEntity][] = $query->id;
           $counter += 1;
         }
       }
-      $this->log(ts("%1 attached %2(s) deleted.", array(1 => $counter, 2 => $attachedEntity, 'domain' => 'de.systopia.anonymiser')));
+      $this->log(ts('%1 attached %2(s) deleted.', [
+        1 => $counter,
+        2 => $attachedEntity,
+        'domain' => 'de.systopia.anonymiser',
+      ]));
     }
 
     $this->clearCustomData($clearedEntities);
 
     // FINALLY clean FULL LOGGING tables
-    if ($this->config->deleteLogs()) {
+    if ((int) $this->config->deleteLogs() > 0) {
       foreach ($clearedEntities as $entity_name => $entity_ids) {
-        if (!empty($entity_ids) && $entity_name != 'Log') {
+        if ($entity_ids !== [] && $entity_name !== 'Log') {
           $table_name     = $this->config->getTableForEntity($entity_name);
           $log_table_name = $this->config->getLogTableForTable($table_name);
           $id_list        = implode(',', $entity_ids);
           $query = "DELETE FROM `$log_table_name` WHERE id IN ($id_list);";
           CRM_Core_DAO::executeQuery($query);
-          $this->log(ts("Removed entries for %1 %2(s) from logging table '%3'.", array(1 => count($entity_ids), 2 => $entity_name, 3 => $log_table_name, 'domain' => 'de.systopia.anonymiser')));
+          $this->log(ts("Removed entries for %1 %2(s) from logging table '%3'.", [
+            1 => count($entity_ids),
+            2 => $entity_name,
+            3 => $log_table_name,
+            'domain' => 'de.systopia.anonymiser',
+          ]));
         }
       }
 
@@ -144,19 +172,24 @@ class CRM_Anonymiser_Worker {
     }
   }
 
-
-
-
   /**
    * Anonymise the contact base
+   *
+   * @param int $contact_id
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return void
    */
   protected function anoymiseContactBase($contact_id, &$clearedEntities) {
     // first: load the contact
     $clearedEntities['Contact'][] = $contact_id;
-    $contact = civicrm_api3('Contact', 'getsingle', array('id' => $contact_id));
+    $contact = civicrm_api3('Contact', 'getsingle', ['id' => $contact_id]);
+    if (!is_array($contact)) {
+      throw new RuntimeException('Unexpected API result.');
+    }
     // then: get all fields to overwrite
     $fields = $this->config->getOverrideFields('Contact', $contact);
-    $erase_query = array('id' => $contact_id);
+    $erase_query = ['id' => $contact_id];
     foreach ($fields as $field_name => $anon_type) {
       $erase_query[$field_name] = $this->config->generateAnonymousValue($field_name, $anon_type, $contact);
     }
@@ -168,29 +201,44 @@ class CRM_Anonymiser_Worker {
   /**
    * Delete any other log entries related to the contact, even where we did not delete the entity itself
    * (possibly because it had already been deleted, or is no longer related)
-   * @param $entity_name string the name of the entity as used by the API
-   * @param $contact_id  int    ID of the contact
+   * @param string $entity_name the name of the entity as used by the API
+   * @param int $contact_id ID of the contact
+   *
+   * @return void
    */
   protected function deleteRelatedLogs($entity_name, $contact_id) {
     $table_name     = $this->config->getTableForEntity($entity_name);
     $log_table_name = $this->config->getLogTableForTable($table_name);
 
     $identifiers = $this->config->getIdentifiers($entity_name, $contact_id);
-    if ($identifiers['join']) return; // Only entities that refer directly to the contact
+    // Only entities that refer directly to the contact
+    if (isset($identifiers['join']) && $identifiers['join'] !== '') {
+      return;
+    }
     foreach ($identifiers['sql'] as $where_clause) {
       $query = "DELETE FROM `$log_table_name` WHERE $where_clause";
       $result = CRM_Core_DAO::executeQuery($query);
+      if (!($result instanceof CRM_Core_DAO)) {
+        throw new RuntimeException('Unexpected query result.');
+      }
       $row_count = $result->affectedRows();
       if ($row_count) {
-        $this->log(ts("Removed %1 additional log entries referencing this contact from logging table '%2'.", array(1 => $row_count, 2 => $log_table_name, 'domain' => 'de.systopia.anonymiser')));
+        $this->log(ts("Removed %1 additional log entries referencing this contact from logging table '%2'.", [
+          1 => $row_count,
+          2 => $log_table_name,
+          'domain' => 'de.systopia.anonymiser',
+        ]));
       }
     }
   }
 
   /**
    * Delete an entity that is related to the contact
-   * @param $entity_name string the name of the entity as used by the API
-   * @param $entity_spec array  parameters used for identification
+   * @param string $entity_name the name of the entity as used by the API
+   * @param int $contact_id ID of the contact
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return void
    */
   protected function deleteRelatedEntities($entity_name, $contact_id, &$clearedEntities) {
     $deleted_count = 0;
@@ -199,9 +247,12 @@ class CRM_Anonymiser_Worker {
     $identifiers = $this->config->getIdentifiers($entity_name, $contact_id);
     foreach ($identifiers['sql'] as $where_clause) {
       $table_name = $this->config->getTableForEntity($entity_name);
-      $join = empty($identifiers['join'])?'':$identifiers['join'];
+      $join = (!isset($identifiers['join']) || $identifiers['join'] === '') ? '' : $identifiers['join'];
       $sql = "SELECT `$table_name`.id AS entity_id FROM `$table_name` $join WHERE $where_clause";
       $query = CRM_Core_DAO::executeQuery($sql);
+      if (!($query instanceof CRM_Core_DAO)) {
+        throw new RuntimeException('Unexpected query result.');
+      }
       while ($query->fetch()) {
         $clearedEntities[$entity_name][] = $query->entity_id;
         $this->deleteEntity($entity_name, $query->entity_id);
@@ -210,136 +261,194 @@ class CRM_Anonymiser_Worker {
     }
 
     // log this
-    $this->log(ts("%1 %2(s) deleted.", array(1 => $deleted_count, 2 => $entity_name, 'domain' => 'de.systopia.anonymiser')));
+    $this->log(ts('%1 %2(s) deleted.', [1 => $deleted_count, 2 => $entity_name, 'domain' => 'de.systopia.anonymiser']));
   }
 
   /**
    * delete an individual entity
+   *
+   * @param string $entity_name
+   * @param int|string $entity_id
+   *
+   * @return void
    */
-  protected function deleteEntity($entity_name, $entity_id)  {
-    if ($entity_name=='Log' || $entity_name=='EntityTag') {
+  protected function deleteEntity($entity_name, $entity_id) {
+    if ($entity_name === 'Log' || $entity_name === 'EntityTag') {
       // exception for Log entries (no API)
       // exception for EntityTag as those fail through the api
       $table_name = $this->config->getTableForEntity($entity_name);
       CRM_Core_DAO::executeQuery("DELETE FROM `$table_name` WHERE id = $entity_id");
-    } else {
-      civicrm_api3($entity_name, 'delete', array('id' => $entity_id));
+    }
+    else {
+      civicrm_api3($entity_name, 'delete', ['id' => $entity_id]);
     }
   }
-
 
   /**
    * DELETE the activities. This is not straightforward, activities
    * can be linked to a multitude of contacts
    *
    * OUR approach is: if it's linked to up to two contacts, we delete it
+   *
+   * @param int $contact_id
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return void
    */
-  protected function deleteActivities($entity_name, $contact_id, &$clearedEntities) {
+  protected function deleteActivities($contact_id, &$clearedEntities) {
     $deleted_activities = 0;
     $deleted_connections = 0;
 
     // FIRST: find all contact-activity relations
     $identify_connections_sql = "SELECT id FROM civicrm_activity_contact WHERE contact_id = $contact_id";
     $identify_connections = CRM_Core_DAO::executeQuery($identify_connections_sql);
+    if (!($identify_connections instanceof CRM_Core_DAO)) {
+      throw new RuntimeException('Unexpected query result.');
+    }
     while ($identify_connections->fetch()) {
       $clearedEntities['ActivityContact'][] = $identify_connections->id;
     }
 
-    // THEN: find activities with no more that 2 contacts involved. These will be deleted as they are assumed to be 'primarily about'
-    // the contact being anonymised (note there is some risk when deleting admin contacts or contacts who might register on
-    // behalf of an organisation.
-    $identify_activities_sql = "SELECT civicrm_activity.id AS activity_identifier, parent_id
-                                FROM civicrm_activity
-                                LEFT JOIN civicrm_activity_contact ON civicrm_activity.id = civicrm_activity_contact.activity_id
-                                WHERE contact_id = $contact_id
-                                  AND 2 >= (SELECT COUNT(DISTINCT(contact_id)) FROM civicrm_activity_contact WHERE civicrm_activity.id = activity_id );";
+    // THEN: find activities with no more that 2 contacts involved. These will be deleted as they are
+    // assumed to be 'primarily about' the contact being anonymised (note there is some risk when
+    // deleting admin contacts or contacts who might register on behalf of an organisation.
+    $identify_activities_sql = 'SELECT civicrm_activity.id AS activity_identifier, parent_id'
+      . ' FROM civicrm_activity'
+      . ' LEFT JOIN civicrm_activity_contact ON civicrm_activity.id = civicrm_activity_contact.activity_id'
+      . " WHERE contact_id = $contact_id"
+      . ' AND 2 >= (SELECT COUNT(DISTINCT(contact_id)) FROM civicrm_activity_contact'
+      . ' WHERE civicrm_activity.id = activity_id);';
     $identify_activities = CRM_Core_DAO::executeQuery($identify_activities_sql);
+    if (!($identify_activities instanceof CRM_Core_DAO)) {
+      throw new RuntimeException('Unexpected query result.');
+    }
     while ($identify_activities->fetch()) {
       $activity_id = $identify_activities->activity_identifier;
-      if (empty($clearedEntities['Activity'][$activity_id])) {
+      if (!isset($clearedEntities['Activity'][$activity_id])) {
         $clearedEntities['Activity'][$activity_id] = $activity_id;
         // If the parent is deleted the activity will have already been deleted. We should still
         // count it by incrementing the count.
         if (!$identify_activities->parent_id || !isset($clearedEntities['Activity'][$identify_activities->parent_id])) {
-          civicrm_api3('Activity', 'delete', array('id' => $activity_id));
+          civicrm_api3('Activity', 'delete', ['id' => $activity_id]);
         }
         $deleted_activities += 1;
       }
     }
 
     // FINALLY: delete any remaining connections (e.g. to mass activities)
-    if (!empty($clearedEntities['ActivityContact'])) {
+    if (isset($clearedEntities['ActivityContact'])) {
       $deleted_connections = count($clearedEntities['ActivityContact']);
       $entity_list = implode(',', $clearedEntities['ActivityContact']);
       CRM_Core_DAO::executeQuery("DELETE FROM civicrm_activity_contact WHERE id IN ($entity_list)");
     }
 
-    $this->log(ts("%1 activities, and %2 associations with activities deleted.", array(1 => $deleted_activities, 2 => $deleted_connections, 'domain' => 'de.systopia.anonymiser')));
+    $this->log(ts('%1 activities, and %2 associations with activities deleted.', [
+      1 => $deleted_activities,
+      2 => $deleted_connections,
+      'domain' => 'de.systopia.anonymiser',
+    ]));
   }
 
   /**
    * anonymises the contact's membership information,
    * without deleting statistically relevant data
+   *
+   * @param int $contact_id
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return void
    */
   protected function anonymiseMemberships($contact_id, &$clearedEntities) {
-    $memberships = civicrm_api3('Membership', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999));
+    $memberships = civicrm_api3('Membership', 'get', ['contact_id' => $contact_id, 'option.limit' => 99999]);
+    if (!is_array($memberships)) {
+      throw new RuntimeException('Unexpected API result.');
+    }
 
     // iterate through all memberships
     foreach ($memberships['values'] as $membership) {
       $clearedEntities['Membership'][] = $membership['id'];
       $fields = $this->config->getOverrideFields('Membership', $membership);
-      if (!empty($fields)) {
-        $update_query = array('id' => $membership['id']);
+      if ($fields !== []) {
+        $update_query = ['id' => $membership['id']];
         foreach ($fields as $field_name => $type) {
           $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $membership);
         }
         civicrm_api3('Membership', 'create', $update_query);
-        $this->log(ts("Anonymised Membership [%1].", array(1 => $membership['id'], 'domain' => 'de.systopia.anonymiser')));
-      } else {
-        $this->log(ts("Membership [%1] did not need anonymisation.", array(1 => $membership['id'], 'domain' => 'de.systopia.anonymiser')));
+        $this->log(ts('Anonymised Membership [%1].', [1 => $membership['id'], 'domain' => 'de.systopia.anonymiser']));
+      }
+      else {
+        $this->log(ts('Membership [%1] did not need anonymisation.', [
+          1 => $membership['id'],
+          'domain' => 'de.systopia.anonymiser',
+        ]));
       }
     }
 
-    if ($memberships['count'] == 0) {
-      $this->log(ts("0 Membership entities found for anonymisation.", array('domain' => 'de.systopia.anonymiser')));
+    if ($memberships['count'] === 0) {
+      $this->log(ts('0 Membership entities found for anonymisation.', ['domain' => 'de.systopia.anonymiser']));
     }
   }
 
   /**
    * anonymises the contact's event participation information,
    * without deleting statistically relevant data
+   *
+   * @param int $contact_id
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return void
    */
   protected function anonymiseParticipants($contact_id, &$clearedEntities) {
-    $participants = civicrm_api3('Participant', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999));
+    $participants = civicrm_api3('Participant', 'get', ['contact_id' => $contact_id, 'option.limit' => 99999]);
+    if (!is_array($participants)) {
+      throw new RuntimeException('Unexpected API result.');
+    }
     // iterate through all participants
     foreach ($participants['values'] as $participant) {
       $clearedEntities['Participant'][] = $participant['id'];
       $fields = $this->config->getOverrideFields('Participant', $participant);
-      if (!empty($fields)) {
-        $update_query = array('id' => $participant['id']);
+      if ($fields !== []) {
+        $update_query = ['id' => $participant['id']];
         foreach ($fields as $field_name => $type) {
           $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $participant);
         }
         civicrm_api3('Participant', 'create', $update_query);
-        $this->log(ts("Anonymised Participant [%1].", array(1 => $participant['id'], 'domain' => 'de.systopia.anonymiser')));
-      } else {
-        $this->log(ts("Participant [%1] did not need anonymisation.", array(1 => $participant['id'], 'domain' => 'de.systopia.anonymiser')));
+        $this->log(ts('Anonymised Participant [%1].', [1 => $participant['id'], 'domain' => 'de.systopia.anonymiser']));
+      }
+      else {
+        $this->log(ts('Participant [%1] did not need anonymisation.', [
+          1 => $participant['id'],
+          'domain' => 'de.systopia.anonymiser',
+        ]));
       }
     }
 
-    if ($participants['count'] == 0) {
-      $this->log(ts("0 Participant entities found for anonymisation.", array('domain' => 'de.systopia.anonymiser')));
+    if ($participants['count'] === 0) {
+      $this->log(ts('0 Participant entities found for anonymisation.', ['domain' => 'de.systopia.anonymiser']));
     }
   }
 
   /**
    * anonymises the contact's contribution information,
    * without deleting statistically relevant data
+   *
+   * @param int $contact_id
+   * @param array<string, array<mixed, mixed>> $clearedEntities
+   *
+   * @return void
    */
+  // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
   protected function anonymiseContributions($contact_id, &$clearedEntities) {
-    $contributions      = civicrm_api3('Contribution', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999));
-    $test_contributions = civicrm_api3('Contribution', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999, 'is_test' => 1));
-    $all_contributions  = array_merge($contributions['values'], $test_contributions['values']);
+    $contributions      = civicrm_api3('Contribution', 'get', ['contact_id' => $contact_id, 'option.limit' => 99999]);
+    $test_contributions = civicrm_api3('Contribution', 'get', [
+      'contact_id' => $contact_id,
+      'option.limit' => 99999,
+      'is_test' => 1,
+    ]);
+    if (!is_array($contributions) || !is_array($test_contributions)) {
+      throw new RuntimeException('Unexpected API result.');
+    }
+    $all_contributions = array_merge($contributions['values'], $test_contributions['values']);
 
     $contribution_counter   = 0;
     $financial_trxn_counter = 0;
@@ -351,8 +460,8 @@ class CRM_Anonymiser_Worker {
       $fields = $this->config->getOverrideFields('Contribution', $contribution);
 
       // anonymise the contribution itself
-      if (!empty($fields)) {
-        $update_query = array('id' => $contribution['id']);
+      if ($fields !== []) {
+        $update_query = ['id' => $contribution['id']];
         foreach ($fields as $field_name => $type) {
           $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $contribution);
         }
@@ -361,12 +470,18 @@ class CRM_Anonymiser_Worker {
       }
 
       // now find and anonymise the LineItems
-      $line_items = civicrm_api3('LineItem', 'get', array('contribution_id' => ['IN' => $clearedEntities['Contribution']], ['options' => ['limit' => 0]]));
+      $line_items = civicrm_api3('LineItem', 'get', [
+        'contribution_id' => ['IN' => $clearedEntities['Contribution']],
+        'options' => ['limit' => 0],
+      ]);
+      if (!is_array($line_items)) {
+        throw new RuntimeException('Unexpected API result.');
+      }
       foreach ($line_items['values'] as $line_item) {
         $clearedEntities['LineItem'][] = $line_item['id'];
         $fields = $this->config->getOverrideFields('LineItem', $line_item);
-        if (!empty($fields)) {
-          $update_query = array('id' => $line_item['id']);
+        if ($fields !== []) {
+          $update_query = ['id' => $line_item['id']];
           foreach ($fields as $field_name => $type) {
             $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $line_item);
             civicrm_api3('LineItem', 'create', $update_query);
@@ -379,14 +494,17 @@ class CRM_Anonymiser_Worker {
       $entity_table = $this->config->getTableForEntity('FinancialTrxn');
       $where_clause = $this->config->getAttachedEntitySelector('FinancialTrxn', $clearedEntities);
       $query = CRM_Core_DAO::executeQuery("SELECT id FROM $entity_table WHERE $where_clause");
+      if (!($query instanceof CRM_Core_DAO)) {
+        throw new RuntimeException('Unexpected query result.');
+      }
       while ($query->fetch()) {
         // anonymise every one of it
         $financial_trxn_id = $query->id;
         $clearedEntities['FinancialTrxn'][] = $financial_trxn_id;
 
         $fields = $this->config->getOverrideFields('FinancialTrxn');
-        if (!empty($fields)) {
-          $update_query = array('id' => $financial_trxn_id);
+        if ($fields !== []) {
+          $update_query = ['id' => $financial_trxn_id];
           foreach ($fields as $field_name => $type) {
             $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type);
           }
@@ -396,55 +514,84 @@ class CRM_Anonymiser_Worker {
         }
       }
     }
-    $this->log(ts("Anonymised %1 contributions, %2 associated line items and %3 associated financial transactions.", array(1 => $contribution_counter, $line_item_counter, $financial_trxn_counter, 'domain' => 'de.systopia.anonymiser')));
-
+    $this->log(ts('Anonymised %1 contributions, %2 associated line items and %3 associated financial transactions.', [
+      1 => $contribution_counter,
+      2 => $line_item_counter,
+      3 => $financial_trxn_counter,
+      'domain' => 'de.systopia.anonymiser',
+    ]));
 
     // finally, anonymise recurring contributions
-    $recurring_contributions = civicrm_api3('ContributionRecur', 'get', array('contact_id' => $contact_id, 'option.limit' => 99999));
+    $recurring_contributions = civicrm_api3('ContributionRecur', 'get', [
+      'contact_id' => $contact_id,
+      'option.limit' => 99999,
+    ]);
+    if (!is_array($recurring_contributions)) {
+      throw new RuntimeException('Unexpected API result.');
+    }
     foreach ($recurring_contributions['values'] as $recurring_contribution) {
       $clearedEntities['ContributionRecur'][] = $recurring_contribution['id'];
       $fields = $this->config->getOverrideFields('ContributionRecur', $recurring_contribution);
-      if (!empty($fields)) {
-        $update_query = array('id' => $recurring_contribution['id']);
+      if ($fields !== []) {
+        $update_query = ['id' => $recurring_contribution['id']];
         foreach ($fields as $field_name => $type) {
-          $update_query[$field_name] = $this->config->generateAnonymousValue($field_name, $type, $recurring_contribution);
+          $update_query[$field_name] = $this->config->generateAnonymousValue(
+            $field_name,
+            $type,
+            $recurring_contribution
+          );
         }
         civicrm_api3('ContributionRecur', 'create', $update_query);
-        $this->log(ts("Anonymised RecurringContribution [%1].", array(1 => $recurring_contribution['id'], 'domain' => 'de.systopia.anonymiser')));
-      } else {
-        $this->log(ts("RecurringContribution [%1] did not need anonymisation.", array(1 => $recurring_contribution['id'], 'domain' => 'de.systopia.anonymiser')));
+        $this->log(ts('Anonymised RecurringContribution [%1].', [
+          1 => $recurring_contribution['id'],
+          'domain' => 'de.systopia.anonymiser',
+        ]));
+      }
+      else {
+        $this->log(ts('RecurringContribution [%1] did not need anonymisation.', [
+          1 => $recurring_contribution['id'],
+          'domain' => 'de.systopia.anonymiser',
+        ]));
       }
     }
 
-    if ($recurring_contributions['count'] == 0) {
-      $this->log(ts("0 RecurringContribution entities found for anonymisation.", array('domain' => 'de.systopia.anonymiser')));
+    if ($recurring_contributions['count'] === 0) {
+      $this->log(ts('0 RecurringContribution entities found for anonymisation.', [
+        'domain' => 'de.systopia.anonymiser',
+      ]));
     }
   }
 
   /**
    * Clear the custom data.
    *
-   * @param $clearedEntities
+   * @param array<string, array<mixed, mixed>> $clearedEntities
    *
    * @return void
    * @throws \CRM_Core_Exception
    */
   protected function clearCustomData($clearedEntities) {
     $sqlStatements = [];
-    foreach($clearedEntities as $entity => $ids) {
-      if (count($ids)) {
+    foreach ($clearedEntities as $entity => $ids) {
+      if (count($ids) > 0) {
         $customTables = $this->config->getCustomTablesForEntity($entity);
+        $scalar_ids = array_filter($ids, 'is_scalar');
+        $id_list = implode(',', array_map('strval', $scalar_ids));
         foreach ($customTables as $customTable) {
-          CRM_Core_DAO::executeQuery("DELETE FROM `" . $customTable . "` WHERE `entity_id` IN(".implode(",", $ids) . ");");
+          CRM_Core_DAO::executeQuery(
+            'DELETE FROM `' . $customTable . '` WHERE `entity_id` IN(' . $id_list . ');'
+          );
         }
       }
     }
   }
 
-
-
   /**
    * log messages during execution
+   *
+   * @param string $message
+   *
+   * @return void
    */
   public function log($message) {
     $this->log[] = $message;
@@ -452,39 +599,46 @@ class CRM_Anonymiser_Worker {
 
   /**
    * get all log messages
+   *
+   * @return array<int, string>
    */
   public function getLog() {
     return $this->log;
   }
 
-    /**
-     * check if the component for this entity is enabled
-     * currently only checks Membership, Participant, Contribution, ContributionRcur
-     * returns true if component is enabled or not checked
-     * @param $entity
-     * @return bool
-     */
-  private function isEntityComponentEnabled($entity){
-    if ($entity == 'Membership'):
-        return $this->isComponentEnabled('CiviMember');
-    elseif ($entity == 'Participant'):
-        return $this->isComponentEnabled('CiviEvent');
-    elseif ($entity == 'Contribution'):
-        return $this->isComponentEnabled('CiviContribute');
-    elseif ($entity == 'ContributionRecur'):
-        return $this->isComponentEnabled('CiviContribute');
-    else:
-        // assume this component is enabled if it is not explicitly checked
-        return true;
+  /**
+   * check if the component for this entity is enabled
+   * currently only checks Membership, Participant, Contribution, ContributionRcur
+   * returns true if component is enabled or not checked
+   * @param string $entity
+   * @return bool
+   */
+  private function isEntityComponentEnabled($entity) {
+    if ($entity === 'Membership') :
+      return $this->isComponentEnabled('CiviMember');
+    elseif ($entity === 'Participant') :
+      return $this->isComponentEnabled('CiviEvent');
+    elseif ($entity === 'Contribution') :
+      return $this->isComponentEnabled('CiviContribute');
+    elseif ($entity === 'ContributionRecur') :
+      return $this->isComponentEnabled('CiviContribute');
+    else :
+      // assume this component is enabled if it is not explicitly checked
+      return TRUE;
     endif;
   }
 
-    /**
-     * check if this Civi Component is enabled
-     * @param $component
-     * @return bool
-     */
+  /**
+   * check if this Civi Component is enabled
+   * @param string $component
+   * @return bool
+   */
   private function isComponentEnabled($component) {
-      return in_array($component, Civi::settings()->get('enable_components'), TRUE);
+    $enabled_components = Civi::settings()->get('enable_components');
+    if (!is_array($enabled_components)) {
+      throw new RuntimeException('Unexpected settings value.');
+    }
+    return in_array($component, $enabled_components, TRUE);
   }
+
 }

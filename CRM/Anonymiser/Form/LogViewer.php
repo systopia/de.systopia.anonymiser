@@ -13,6 +13,8 @@
 | written permission from the original author(s).        |
 +-------------------------------------------------------*/
 
+declare(strict_types = 1);
+
 use CRM_Anonymiser_ExtensionUtil as E;
 
 /**
@@ -20,29 +22,51 @@ use CRM_Anonymiser_ExtensionUtil as E;
  */
 class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
 
-  /** @var string distinct file prefix to prevent abuse of the log file viewer */
-  const LOG_FILE_PREFIX = 'anonymiser_log_77ce8d46c26598e8073e2de039b7dd5cb637cf30';
+  /**
+   * @var string distinct file prefix to prevent abuse of the log file viewer
+   */
+  public const LOG_FILE_PREFIX = 'anonymiser_log_77ce8d46c26598e8073e2de039b7dd5cb637cf30';
+
+  /**
+   * @var string
+   */
+  protected $log_file;
+
+  /**
+   * @var string
+   */
+  protected $return_url;
 
   /**
    * Verify that this is our log file
    *
-   * @throws Exception
-   *   if there's something wrong with the log file
+   * @throws RuntimeException
+   *   If there's something wrong with the log file.
+   *
+   * @return void
    */
   protected function verifyLogFile() {
     if (!is_readable($this->log_file)) {
-      throw new Exception(E::ts("Log file doesn't exist or is not accessible"));
+      throw new RuntimeException(E::ts("Log file doesn't exist or is not accessible"));
     }
 
-    if (strstr($this->log_file, self::LOG_FILE_PREFIX) === false) {
-      throw new Exception(E::ts("Illegal log file path requested"));
+    if (strstr($this->log_file, self::LOG_FILE_PREFIX) === FALSE) {
+      throw new RuntimeException(E::ts('Illegal log file path requested'));
     }
   }
 
+  /**
+   * @return void
+   */
   public function buildQuickForm() {
-    $this->setTitle(E::ts("Anonymisation Log"));
-    $this->return_url = CRM_Utils_Request::retrieve('return_url', 'String', $this);
-    $this->log_file = CRM_Utils_Request::retrieve('log_file', 'String', $this);
+    $this->setTitle(E::ts('Anonymisation Log'));
+    $return_url = CRM_Utils_Request::retrieve('return_url', 'String', $this);
+    $log_file = CRM_Utils_Request::retrieve('log_file', 'String', $this);
+    if (!is_string($return_url) || !is_string($log_file)) {
+      throw new RuntimeException('Missing or invalid request parameters.');
+    }
+    $this->return_url = $return_url;
+    $this->log_file = $log_file;
 
     // add log data
     $this->verifyLogFile();
@@ -52,15 +76,15 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
     $this->addButtons(
         [
             [
-                'type' => 'submit',
-                'name' => E::ts('Download'),
-                'icon' => 'fa-download',
-                'isDefault' => true,
+              'type' => 'submit',
+              'name' => E::ts('Download'),
+              'icon' => 'fa-download',
+              'isDefault' => TRUE,
             ],
             [
-                'type' => 'done',
-                'name' => E::ts('Done'),
-                'isDefault' => false,
+              'type' => 'done',
+              'name' => E::ts('Done'),
+              'isDefault' => FALSE,
             ],
         ]
     );
@@ -68,24 +92,35 @@ class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
     parent::buildQuickForm();
   }
 
-  public function postProcess()
-  {
+  /**
+   * @return void
+   */
+  public function postProcess() {
     // this means somebody clicked download
     $vars = $this->exportValues();
     if (isset($vars['_qf_LogViewer_submit'])) {
       // download the log file
       $this->verifyLogFile();
       $log_content = file_get_contents($this->log_file);
+      if ($log_content === FALSE) {
+        throw new RuntimeException(E::ts('Could not read the log file'));
+      }
       CRM_Utils_System::download(
-          E::ts("Anonymisation %1.txt", [1 => date('Y-m-d')]),
+          E::ts('Anonymisation %1.txt', [1 => date('Y-m-d')]),
           'text/plain',
           $log_content
       );
-    } else if (isset($vars['_qf_LogViewer_done'])) {
+    }
+    elseif (isset($vars['_qf_LogViewer_done'])) {
       // go back
-      CRM_Utils_System::redirect(base64_decode($this->return_url));
+      $return_url = base64_decode($this->return_url, TRUE);
+      if ($return_url === FALSE) {
+        throw new RuntimeException(E::ts('Illegal return URL requested'));
+      }
+      CRM_Utils_System::redirect($return_url);
     }
 
     parent::postProcess();
   }
+
 }

@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+declare(strict_types = 1);
+
 namespace Civi\Anonymiser\ActionProvider\Actions;
 
 use Civi\ActionProvider\Action\AbstractAction;
@@ -29,9 +31,9 @@ class AnonymiseAction extends AbstractAction {
   /**
    * Run the action
    *
-   * @param ParameterBagInterface $parameters
+   * @param \Civi\ActionProvider\Parameter\ParameterBagInterface $parameters
    *   The parameters to this action.
-   * @param ParameterBagInterface $output
+   * @param \Civi\ActionProvider\Parameter\ParameterBagInterface $output
    *   The parameters this action can send back
    *
    * @return void
@@ -40,8 +42,9 @@ class AnonymiseAction extends AbstractAction {
     $contact_id = $parameters->getParameter('contact_id');
     try {
       civicrm_api3('Contact', 'anonymise', ['contact_id' => $contact_id]);
-    } catch (\CRM_Core_Exception $ex) {
-      // Do nothing.
+    }
+    catch (\CRM_Core_Exception $ex) {
+      // @ignoreException Do nothing.
     }
   }
 
@@ -49,7 +52,7 @@ class AnonymiseAction extends AbstractAction {
    * Returns the specification of the configuration options for the actual
    * action.
    *
-   * @return SpecificationBag
+   * @return \Civi\ActionProvider\Parameter\SpecificationBag
    */
   public function getConfigurationSpecification() {
     return new SpecificationBag([]);
@@ -58,13 +61,12 @@ class AnonymiseAction extends AbstractAction {
   /**
    * Returns the specification of the parameters of the actual action.
    *
-   * @return SpecificationBag
+   * @return \Civi\ActionProvider\Parameter\SpecificationBag
    */
   public function getParameterSpecification() {
     return new SpecificationBag([
       new Specification('contact_id', 'Integer', E::ts('Contact ID'), TRUE),
     ]);
   }
-
 
 }
