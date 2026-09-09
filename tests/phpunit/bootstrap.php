@@ -6,6 +6,12 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 ini_set('memory_limit', '2G');
 
+if (!class_exists(\CivixPhar\PHPUnit\Framework\TestCase::class, FALSE)
+  && class_exists(\PHPUnit\Framework\TestCase::class)
+) {
+  class_alias(\PHPUnit\Framework\TestCase::class, \CivixPhar\PHPUnit\Framework\TestCase::class);
+}
+
 if (file_exists(__DIR__ . '/bootstrap.local.php')) {
   require_once __DIR__ . '/bootstrap.local.php';
 }
