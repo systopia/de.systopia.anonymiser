@@ -635,7 +635,7 @@ class CRM_Anonymiser_Configuration {
    */
   public function getCustomTablesForEntity($entity) {
     if (!isset(\Civi::$statics[E::LONG_NAME]['custom_tables'][$entity])
-      && !is_array(\Civi::$statics[E::LONG_NAME]['custom_tables'][$entity])
+      || !is_array(\Civi::$statics[E::LONG_NAME]['custom_tables'][$entity])
     ) {
       \Civi::$statics[E::LONG_NAME]['custom_tables'][$entity] = [];
       $extends = [$entity];

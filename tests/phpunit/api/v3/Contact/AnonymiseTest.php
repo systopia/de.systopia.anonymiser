@@ -50,6 +50,8 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
   /**
    * Example: Test that a version is returned.
    *
+   * @covers \CRM_Anonymiser_Worker::anonymiseContact
+   *
    * @return void
    */
   public function testAnonymiseContactWithChildActivity() {
@@ -77,6 +79,8 @@ class api_v3_Contact_AnonymiseTest extends \CivixPhar\PHPUnit\Framework\TestCase
 
   /**
    * Example: Test that a version is returned.
+   *
+   * @covers \CRM_Anonymiser_Worker::anonymiseContact
    *
    * @return void
    */
