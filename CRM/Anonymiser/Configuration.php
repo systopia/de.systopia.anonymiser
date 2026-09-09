@@ -101,8 +101,13 @@ class CRM_Anonymiser_Configuration {
     // 6.4; hasExplict() is deprecated there, but is the only name present on
     // older, still-supported versions (down to 5.76). Pick whichever exists
     // at runtime, so this neither warns on new cores nor breaks on old ones.
+    // Invoked via Reflection (rather than a variable method call or
+    // call_user_func()) so PHPStan treats the result as plain `mixed` - and
+    // doesn't try to (inconsistently, across CiviCRM/PHPStan versions)
+    // resolve it to a concrete return type - which we then narrow ourselves.
     $method = method_exists($settings, 'hasExplicit') ? 'hasExplicit' : 'hasExplict';
-    if (call_user_func([$settings, $method], 'anonymiser_' . $key)) {
+    $has_explicit = (bool) (new \ReflectionMethod($settings, $method))->invoke($settings, 'anonymiser_' . $key);
+    if ($has_explicit) {
       return (bool) \Civi::settings()->get('anonymiser_' . $key);
     }
     return TRUE;
