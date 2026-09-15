@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+declare(strict_types = 1);
+
 namespace Civi\Anonymiser;
 
 use CRM_Anonymiser_ExtensionUtil as E;
@@ -27,7 +29,7 @@ class CompilerPass implements CompilerPassInterface {
   /**
    * You can modify the container here before it is dumped to PHP code.
    */
-  public function process(ContainerBuilder $container) {
+  public function process(ContainerBuilder $container): void {
     if ($container->hasDefinition('action_provider')) {
       $actionProviderDefinition = $container->getDefinition('action_provider');
       $actionProviderDefinition->addMethodCall('addAction',
@@ -35,7 +37,7 @@ class CompilerPass implements CompilerPassInterface {
           'AnonymiseAction',
           'Civi\Anonymiser\ActionProvider\Actions\AnonymiseAction',
           E::ts('Contact: Anonymise'),
-          []
+          [],
         ]);
     }
   }
