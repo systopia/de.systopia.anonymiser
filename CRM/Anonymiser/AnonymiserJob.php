@@ -23,7 +23,8 @@ use CRM_Anonymiser_ExtensionUtil as E;
 class CRM_Anonymiser_AnonymiserJob {
 
   /**
-   * @var string*/
+   * @var string
+   */
   public $title;
 
   /**

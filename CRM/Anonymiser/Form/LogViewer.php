@@ -23,7 +23,9 @@ use CRM_Anonymiser_ExtensionUtil as E;
 class CRM_Anonymiser_Form_LogViewer extends CRM_Core_Form {
 
   /**
-   * @var string distinct file prefix to prevent abuse of the log file viewer
+   * distinct file prefix to prevent abuse of the log file viewer
+   *
+   * @var string
    */
   public const LOG_FILE_PREFIX = 'anonymiser_log_77ce8d46c26598e8073e2de039b7dd5cb637cf30';
 

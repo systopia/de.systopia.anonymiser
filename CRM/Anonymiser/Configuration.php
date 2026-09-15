@@ -24,7 +24,9 @@ use CRM_Anonymiser_ExtensionUtil as E;
 class CRM_Anonymiser_Configuration {
 
   /**
-   * @var string|null the name of the database used
+   * the name of the database used
+   *
+   * @var string|null
    */
   protected $database_name = NULL;
 
@@ -97,18 +99,8 @@ class CRM_Anonymiser_Configuration {
    */
   public function shouldDeleteAttribute($key) {
     $settings = \Civi::settings();
-    // hasExplicit() (the correctly spelled method) only exists since CiviCRM
-    // 6.4; hasExplict() is deprecated there, but is the only name present on
-    // older, still-supported versions (down to 5.76). Pick whichever exists
-    // at runtime, so this neither warns on new cores nor breaks on old ones.
-    // Invoked via Reflection (rather than a variable method call or
-    // call_user_func()) so PHPStan treats the result as plain `mixed` - and
-    // doesn't try to (inconsistently, across CiviCRM/PHPStan versions)
-    // resolve it to a concrete return type - which we then narrow ourselves.
-    $method = method_exists($settings, 'hasExplicit') ? 'hasExplicit' : 'hasExplict';
-    $has_explicit = (bool) (new \ReflectionMethod($settings, $method))->invoke($settings, 'anonymiser_' . $key);
-    if ($has_explicit) {
-      return (bool) \Civi::settings()->get('anonymiser_' . $key);
+    if ($settings->hasExplicit('anonymiser_' . $key)) {
+      return (bool) $settings->get('anonymiser_' . $key);
     }
     return TRUE;
   }
@@ -524,26 +516,18 @@ class CRM_Anonymiser_Configuration {
     $entities = $this->getEntitiesToDelete();
 
     // add the ones that were just anonymised
-    if (!in_array('Contact', $entities, TRUE)) {
-      $entities[] = 'Contact';
-    }
-    if (!in_array('GroupContact', $entities, TRUE)) {
-      $entities[] = 'GroupContact';
-    }
-    if (!in_array('EntityTag', $entities, TRUE)) {
-      $entities[] = 'EntityTag';
-    }
-    if (!in_array('Membership', $entities, TRUE)) {
-      $entities[] = 'Membership';
-    }
-    if (!in_array('Participant', $entities, TRUE)) {
-      $entities[] = 'Participant';
-    }
-    if (!in_array('Contribution', $entities, TRUE)) {
-      $entities[] = 'Contribution';
-    }
-    if (!in_array('ContributionRecur', $entities, TRUE)) {
-      $entities[] = 'ContributionRecur';
+    foreach ([
+      'Contact',
+      'GroupContact',
+      'EntityTag',
+      'Membership',
+      'Participant',
+      'Contribution',
+      'ContributionRecur',
+    ] as $entity_name) {
+      if (!in_array($entity_name, $entities, TRUE)) {
+        $entities[] = $entity_name;
+      }
     }
 
     // look up the table names

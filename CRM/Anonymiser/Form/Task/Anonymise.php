@@ -19,7 +19,9 @@ use CRM_Anonymiser_ExtensionUtil as E;
 
 class CRM_Anonymiser_Form_Task_Anonymise extends CRM_Contact_Form_Task {
   /**
-   * @var int number of contacts to be anonymised per queue item
+   * number of contacts to be anonymised per queue item
+   *
+   * @var int
    */
   private const BATCH_SIZE = 10;
 

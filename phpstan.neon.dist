@@ -18,6 +18,12 @@ parameters:
 	scanDirectories:
 		- tools/phpunit/vendor/bin/.phpunit/phpunit/src/Framework
 		- mixin
+		# Optional "actionprovider" extension (see AnonymiseAction.php /
+		# CompilerPass.php). It is not a composer/runtime dependency, so PHPStan
+		# needs a real checkout to resolve its classes. Clone it as a sibling
+		# directory (the CI workflow does the same):
+		#   git clone --depth 1 https://lab.civicrm.org/extensions/action-provider.git ../action-provider
+		- ../action-provider/
 	bootstrapFiles:
 		- tools/phpunit/vendor/bin/.phpunit/phpunit/vendor/autoload.php
 		- phpstanBootstrap.php

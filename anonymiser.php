@@ -24,7 +24,7 @@ use CRM_Anonymiser_ExtensionUtil as E;
 /**
  * Implements hook_civicrm_config().
  *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_config
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_config/
  */
 function anonymiser_civicrm_config(CRM_Core_Config &$config): void {
   _anonymiser_civix_civicrm_config($config);
@@ -33,7 +33,7 @@ function anonymiser_civicrm_config(CRM_Core_Config &$config): void {
 /**
  * Implements hook_civicrm_install().
  *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_install/
  */
 function anonymiser_civicrm_install(): void {
   _anonymiser_civix_civicrm_install();
@@ -42,7 +42,7 @@ function anonymiser_civicrm_install(): void {
 /**
  * Implements hook_civicrm_enable().
  *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_enable/
  */
 function anonymiser_civicrm_enable(): void {
   _anonymiser_civix_civicrm_enable();
@@ -58,7 +58,7 @@ function anonymiser_civicrm_enable(): void {
  */
 function anonymiser_civicrm_summaryActions(&$actions, $contactID) {
   $actions['contact_anonymise'] = [
-    'title'           => ts('Anonymise Contact', ['domain' => 'de.systopia.anonymiser']),
+    'title'           => E::ts('Anonymise Contact'),
     'weight'          => 5,
     'ref'             => 'contact-anonymise',
     'key'             => 'contact_anonymise',
@@ -117,7 +117,7 @@ function anonymiser_civicrm_container(Symfony\Component\DependencyInjection\Cont
 /**
  * Implements hook_civicrm_navigationMenu().
  *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_navigationMenu
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_navigationMenu/
  *
  * @param array<array-key, mixed> $menu
  */
