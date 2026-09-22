@@ -100,9 +100,9 @@ class CRM_Anonymiser_Configuration {
    *
    * @return array field_name => field_type map
    */
-  public function getOverrideFields($entity_name, $entity = array()) {
+  public function getOverrideFields($entity_name, $entity = []) {
     if ($entity_name == 'Contact') {
-      $fields = array(
+      $fields = [
         "legal_identifier"       => 'null',
         "external_identifier"    => 'null',
         "nick_name"              => 'null',
@@ -136,7 +136,7 @@ class CRM_Anonymiser_Configuration {
         "deceased_date"          => 'null',
         "created_date"           => 'null',
         "is_deleted"             => 'true',
-      );
+      ];
 
       if (!$this->shouldDeleteAttribute('contact_dates')) {
         $fields['birth_date']    = 'month_floor';
@@ -145,46 +145,46 @@ class CRM_Anonymiser_Configuration {
       }
 
     } elseif ($entity_name == 'Membership') {
-      $fields = array(
+      $fields = [
         "join_date"              => 'year_floor',
         "start_date"             => 'year_floor',
         "end_date"               => 'year_ceil',
         "source"                 => 'null',
-        );
+        ];
 
     } elseif ($entity_name == 'Participant') {
-      $fields = array(
+      $fields = [
         "register_date"          => 'month_floor',
         "source"                 => 'null',
-    );
+    ];
 
     } elseif ($entity_name == 'Contribution') {
-      $fields = array(
+      $fields = [
         "source"                 => 'null',
         "trxn_id"                => 'null',
         "invoice_id"             => 'null',
         "check_number"           => 'null',
         //"cancel_reason"          => 'null',
         "credit_note_id"         => 'null',
-        );
+        ];
 
     } elseif ($entity_name == 'ContributionRecur') {
-      $fields = array(
+      $fields = [
         "trxn_id"                => 'null',
         "invoice_id"             => 'null',
-        );
+        ];
 
     } elseif ($entity_name == 'FinancialTrxn') {
-      $fields = array(
+      $fields = [
         "trxn_id"                => 'null',
         "check_number"           => 'null',
         // "trxn_result_code"       => 'null',
-        );
+        ];
 
 
     } else {
       // TODO: Check if we forgot something...
-      $fields = array();
+      $fields = [];
     }
 
     return $fields;
@@ -194,7 +194,7 @@ class CRM_Anonymiser_Configuration {
    * generate an anonymous value to fill the verious fields with.
    * this allows an override based on the field name.
    */
-  public function generateAnonymousValue($field_name, $type = 'string', $entity = array()) {
+  public function generateAnonymousValue($field_name, $type = 'string', $entity = []) {
     switch ($type) {
       case 'anon_name':
         return "{$entity['contact_type']}-{$entity['id']}";
@@ -279,7 +279,7 @@ class CRM_Anonymiser_Configuration {
    */
   public function getEntitiesToDelete() {
     // basic setup
-    $entities = array(
+    $entities = [
       'Address',
       'Email',
       'Phone',
@@ -288,7 +288,7 @@ class CRM_Anonymiser_Configuration {
       'Note',
       'Relationship',
       'Website',
-    );
+    ];
 
     if ($this->deleteGroups()) {
       $entities[] = 'GroupContact';
@@ -320,11 +320,11 @@ class CRM_Anonymiser_Configuration {
    * entity_table/entity_id relation or EntityEntity table
    */
   public function getAttachedEntities() {
-    $entities = array(
+    $entities = [
       'Note',
       'Log',
       'File',
-      );
+      ];
 
     if ($this->deleteTags()) {
       $entities[] = 'EntityTag';
@@ -341,53 +341,53 @@ class CRM_Anonymiser_Configuration {
   public function getIdentifiers($entity_name, $contact_id) {
     // notes have both, entity_table and contact_id (creator)
     if ($entity_name == 'Note') { // NOTES have both:
-      return array('api' => array( array('entity_table' => 'civicrm_contact',
-                                         'entity_id'    => $contact_id),
-                                   array( array('contact_id' => $contact_id))),
-                   'sql' => array( "(`entity_table`='civicrm_contact' AND `entity_id` = $contact_id) OR (`contact_id` = $contact_id)" ));
+      return ['api' => [ ['entity_table' => 'civicrm_contact',
+                                         'entity_id'    => $contact_id],
+                                   [ ['contact_id' => $contact_id]]],
+                   'sql' => [ "(`entity_table`='civicrm_contact' AND `entity_id` = $contact_id) OR (`contact_id` = $contact_id)" ]];
     }
 
     // Contact has the ID right there
     if ($entity_name == 'Contact') {
-      return array('api' => array( array( array('id' => $contact_id))),
-                   'sql' => array( "(`id` = $contact_id)" ));
+      return ['api' => [ [ ['id' => $contact_id]]],
+                   'sql' => [ "(`id` = $contact_id)" ]];
     }
 
     // Activities are exceptional
     if ($entity_name == 'Activity') {
-      return array('api' => array( array( array('source_contact_id' => $contact_id),
-                                          array('target_contact_id' => $contact_id))),
+      return ['api' => [ [ ['source_contact_id' => $contact_id],
+                                          ['target_contact_id' => $contact_id]]],
                    'join' => "LEFT JOIN civicrm_activity_contact ON activity_id=civicrm_activity.id",
-                   'sql' => array( "(`contact_id` = $contact_id)" ));
+                   'sql' => [ "(`contact_id` = $contact_id)" ]];
     }
 
     // Files are exceptional
     if ($entity_name == 'File') {
       // TODO: API??
-      return array('api' => array(),
+      return ['api' => [],
                    'join' => "LEFT JOIN civicrm_entity_file ON file_id=civicrm_file.id",
-                   'sql' => array( "(`entity_table`='civicrm_contact' AND `entity_id` = $contact_id)" ));
+                   'sql' => [ "(`entity_table`='civicrm_contact' AND `entity_id` = $contact_id)" ]];
     }
 
     // Relationships are exceptional
     if ($entity_name == 'Relationship') {
-      return array('api' => array( array( array('contact_id_a' => $contact_id),
-                                          array('contact_id_b' => $contact_id))),
-                   'sql' => array( "(`contact_id_a` = $contact_id OR `contact_id_b` = $contact_id)" ));
+      return ['api' => [ [ ['contact_id_a' => $contact_id],
+                                          ['contact_id_b' => $contact_id]]],
+                   'sql' => [ "(`contact_id_a` = $contact_id OR `contact_id_b` = $contact_id)" ]];
     }
 
 
 
-    if (in_array($entity_name, array('EntityTag', 'File', 'Log'))) {
+    if (in_array($entity_name, ['EntityTag', 'File', 'Log'])) {
       // This is an entity_relation scheme
-      return array('api' => array( array('entity_table' => 'civicrm_contact',
-                                         'entity_id'    => $contact_id)),
-                   'sql' => array( "`entity_table`='civicrm_contact' AND `entity_id` = $contact_id"));
+      return ['api' => [ ['entity_table' => 'civicrm_contact',
+                                         'entity_id'    => $contact_id]],
+                   'sql' => [ "`entity_table`='civicrm_contact' AND `entity_id` = $contact_id"]];
     }
 
     // This is the standard case
-    return array('api' => array( array('contact_id' => $contact_id)),
-                 'sql' => array( "`contact_id` = $contact_id"));
+    return ['api' => [ ['contact_id' => $contact_id]],
+                 'sql' => [ "`contact_id` = $contact_id"]];
   }
 
 
@@ -397,7 +397,7 @@ class CRM_Anonymiser_Configuration {
    */
   public function getAttachedEntitySelector($entity_name, $clearedEntities) {
     // otherwise, just create selectors for all cleared entities
-    $clauses = array();
+    $clauses = [];
     foreach ($clearedEntities as $clearedEntity => $entity_ids) {
       if (!empty($entity_ids)) {
         $table_name = $this->getTableForEntity($clearedEntity);
@@ -424,7 +424,7 @@ class CRM_Anonymiser_Configuration {
    * anonymisation process given the current configuration
    */
   public function getAffectedTables() {
-    $affected_tables = array('civicrm_contact');
+    $affected_tables = ['civicrm_contact'];
 
     // get all entities that were to be deleted
     $entities = $this->getEntitiesToDelete();
@@ -458,7 +458,7 @@ class CRM_Anonymiser_Configuration {
    * anonymisation process given the current configuration
    */
   public function getAffectedLogTables($quotation = '') {
-    $affected_log_tables = array();
+    $affected_log_tables = [];
     $affected_tables = $this->getAffectedTables();
     foreach ($affected_tables as $table_name) {
       $affected_log_tables[] = $quotation . $this->getLogTableForTable($table_name) . $quotation;
