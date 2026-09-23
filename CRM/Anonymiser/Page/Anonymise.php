@@ -17,7 +17,7 @@ require_once 'CRM/Core/Page.php';
 
 class CRM_Anonymiser_Page_Anonymise extends CRM_Core_Page {
   public function run() {
-    CRM_Utils_System::setTitle(ts('Anonymise Contact', array('domain' => 'de.systopia.anonymiser')));
+    CRM_Utils_System::setTitle(ts('Anonymise Contact', ['domain' => 'de.systopia.anonymiser']));
 
     if (empty($_REQUEST['cid'])) {
       $contact_id = 0;
@@ -26,11 +26,11 @@ class CRM_Anonymiser_Page_Anonymise extends CRM_Core_Page {
     }
 
     if ($contact_id) {
-      $contact = civicrm_api3('Contact', 'getsingle', array('id' => $contact_id));
+      $contact = civicrm_api3('Contact', 'getsingle', ['id' => $contact_id]);
       $this->assign('contact', $contact);
       parent::run();
     } else {
-      CRM_Core_Session::setStatus(ts('Contact ID is invalid!', array('domain' => 'de.systopia.anonymiser')), ts('Error', array('domain' => 'de.systopia.anonymiser')), 'error');
+      CRM_Core_Session::setStatus(ts('Contact ID is invalid!', ['domain' => 'de.systopia.anonymiser']), ts('Error', ['domain' => 'de.systopia.anonymiser']), 'error');
       CRM_Utils_System::civiExit();
     }
   }
