@@ -13,27 +13,39 @@
 | written permission from the original author(s).        |
 +-------------------------------------------------------*/
 
+declare(strict_types = 1);
+
 /**
  * Allowed @params array keys are:
  *
  * @example SepaCreditorCreate.php Standard Create Example
  *
- * @return array API result array
- * {@getfields entity_batch_create}
+ * @param array<string, mixed> $params
+ *
+ * @return array<string, mixed> API result array
+ *   {@getfields entity_batch_create}
  * @access public
  */
 function civicrm_api3_contact_anonymise($params) {
+  if (!is_numeric($params['contact_id'] ?? NULL)) {
+    throw new RuntimeException('Missing or invalid contact_id.');
+  }
   $worker = new CRM_Anonymiser_Worker();
-  $worker->anonymiseContact($params['contact_id']);
+  $worker->anonymiseContact((int) $params['contact_id']);
   return civicrm_api3_create_success($worker->getLog());
 }
 
 /**
  * Adjust Metadata for Create action
- * 
+ *
  * The metadata is used for setting defaults, documentation & validation
- * @param array $params array or parameters determined by getfields
+ * @param array<string, mixed> $params array or parameters determined by getfields
+ *
+ * @return void
  */
 function _civicrm_api3_contact_anonymise_spec(&$params) {
+  if (!isset($params['contact_id']) || !is_array($params['contact_id'])) {
+    $params['contact_id'] = [];
+  }
   $params['contact_id']['api.required'] = 1;
 }
