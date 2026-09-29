@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: de.systopia.anonymiser\n"
-"POT-Creation-Date: 2021-03-08 12:13+0100\n"
+"POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
 "Last-Translator: Bjoern Endres <Bjoern.Endres@didonai.com>\n"
 "Language-Team: SYSTOPIA <endres@systopia.de>\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: utf-8\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 3.9\n"
 
 #: CRM/Anonymiser/AnonymiserJob.php
 msgid "Anonymisation of contact [%1]"
@@ -41,8 +41,16 @@ msgid "Done"
 msgstr "Fertig"
 
 #: CRM/Anonymiser/Form/LogViewer.php
+msgid "Could not read the log file"
+msgstr ""
+
+#: CRM/Anonymiser/Form/LogViewer.php
 msgid "Anonymisation %1.txt"
 msgstr "Anonymisierung %1.txt"
+
+#: CRM/Anonymiser/Form/LogViewer.php
+msgid "Illegal return URL requested"
+msgstr ""
 
 #: CRM/Anonymiser/Form/Task/Anonymise.php
 msgid "Anonymise %1 Contacts"
@@ -62,7 +70,7 @@ msgstr "Anonymisierung von %1 Kontakten"
 
 #: CRM/Anonymiser/Page/Anonymise.php anonymiser.php
 msgid "Anonymise Contact"
-msgstr "Kontakt Anonymisieren"
+msgstr "Kontakt anonymisieren"
 
 #: CRM/Anonymiser/Page/Anonymise.php
 msgid "Contact ID is invalid!"
@@ -75,6 +83,29 @@ msgstr "Fehler"
 #: CRM/Anonymiser/Worker.php
 msgid "No contact ID given!"
 msgstr "Keine Kontakt-ID übermittelt!"
+
+#: CRM/Anonymiser/Worker.php
+msgid ""
+"Warning: Can not delete potentiall %1 entries because Component is disabled."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid ""
+"Warning: Can not anonymize potentiall Membership entries because Component "
+"is disabled."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid ""
+"Warning: Can not anonymize potentiall Participant entries because Component "
+"is disabled."
+msgstr ""
+
+#: CRM/Anonymiser/Worker.php
+msgid ""
+"Warning: Can not anonymize potentiall Contribution entries because Component "
+"is disabled."
+msgstr ""
 
 #: CRM/Anonymiser/Worker.php
 msgid "%1 attached %2(s) deleted."
@@ -144,9 +175,103 @@ msgstr "Wiederkehrende Zuwedung [%1] benötigt keine Anonymisierung."
 msgid "0 RecurringContribution entities found for anonymisation."
 msgstr "Es liegen keine Wiederkehrende Zuwedungen zur Anonymisierung vor."
 
+#: Civi/Anonymiser/ActionProvider/Actions/AnonymiseAction.php
+msgid "Contact ID"
+msgstr "Kontakt-ID"
+
+#: Civi/Anonymiser/CompilerPass.php
+msgid "Contact: Anonymise"
+msgstr "Kontakt: Anonymisieren"
+
 #: anonymiser.php
 msgid "Anonymise"
 msgstr "Anonymisieren"
+
+#: anonymiser.php
+msgid "Anonymiser Settings"
+msgstr "Anonymisierungs-Einstellungen"
+
+#: settings/anonymiser.setting.php
+msgid "Anonymiser"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Keep group membership state"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Remove group state from contact"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Groups"
+msgstr "Gruppen"
+
+#: settings/anonymiser.setting.php
+msgid "Keep tags"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Remove tags from contact"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Tags"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Keep contact dates"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Remove dates"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Contact dates"
+msgstr "Kontakt-Daten"
+
+#: settings/anonymiser.setting.php
+msgid ""
+"Contact dates are birth date, deceased date and created date. When you keep "
+"the dates they will be set to the 1st of January of that year."
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Keep contributions and anonymise them"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Delete contribution records"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Contributions"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Keep participant records and anonymise them"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Delete participant records"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Participants"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Keep memberships and anonymise them"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Delete membership records"
+msgstr ""
+
+#: settings/anonymiser.setting.php
+msgid "Memberships"
+msgstr ""
 
 #: templates/CRM/Anonymiser/Form/Task/Anonymise.tpl
 msgid "Warning"
